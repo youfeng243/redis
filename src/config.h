@@ -31,7 +31,9 @@
 #define __CONFIG_H
 
 #ifdef __APPLE__
+
 #include <AvailabilityMacros.h>
+
 #endif
 
 #ifdef __linux__
@@ -111,7 +113,7 @@
 #ifdef HAVE_SYNC_FILE_RANGE
 #define rdb_fsync_range(fd,off,size) sync_file_range(fd,off,size,SYNC_FILE_RANGE_WAIT_BEFORE|SYNC_FILE_RANGE_WRITE)
 #else
-#define rdb_fsync_range(fd,off,size) fsync(fd)
+#define rdb_fsync_range(fd, off, size) fsync(fd)
 #endif
 
 /* Check if we can use setproctitle().
@@ -124,8 +126,11 @@
 #if ((defined __linux && defined(__GLIBC__)) || defined __APPLE__)
 #define USE_SETPROCTITLE
 #define INIT_SETPROCTITLE_REPLACEMENT
+
 void spt_init(int argc, char *argv[]);
+
 void setproctitle(const char *fmt, ...);
+
 #endif
 
 /* Byte ordering detection */
@@ -186,11 +191,11 @@ void setproctitle(const char *fmt, ...);
 
 #if !defined(BYTE_ORDER) || \
     (BYTE_ORDER != BIG_ENDIAN && BYTE_ORDER != LITTLE_ENDIAN)
-	/* you must determine what the correct bit order is for
-	 * your compiler - the next line is an intentional error
-	 * which will force your compiles to bomb until you fix
-	 * the above macros.
-	 */
+/* you must determine what the correct bit order is for
+ * your compiler - the next line is an intentional error
+ * which will force your compiles to bomb until you fix
+ * the above macros.
+ */
 #error "Undefined or invalid BYTE_ORDER"
 #endif
 

@@ -32,6 +32,7 @@
 
 #ifndef __HIREDIS_READ_H
 #define __HIREDIS_READ_H
+
 #include <stdio.h> /* for size_t */
 
 #define REDIS_ERR -1
@@ -70,11 +71,15 @@ typedef struct redisReadTask {
 } redisReadTask;
 
 typedef struct redisReplyObjectFunctions {
-    void *(*createString)(const redisReadTask*, char*, size_t);
-    void *(*createArray)(const redisReadTask*, int);
-    void *(*createInteger)(const redisReadTask*, long long);
-    void *(*createNil)(const redisReadTask*);
-    void (*freeObject)(void*);
+    void *(*createString)(const redisReadTask *, char *, size_t);
+
+    void *(*createArray)(const redisReadTask *, int);
+
+    void *(*createInteger)(const redisReadTask *, long long);
+
+    void *(*createNil)(const redisReadTask *);
+
+    void (*freeObject)(void *);
 } redisReplyObjectFunctions;
 
 typedef struct redisReader {
@@ -96,8 +101,11 @@ typedef struct redisReader {
 
 /* Public API for the protocol parser. */
 redisReader *redisReaderCreateWithFunctions(redisReplyObjectFunctions *fn);
+
 void redisReaderFree(redisReader *r);
+
 int redisReaderFeed(redisReader *r, const char *buf, size_t len);
+
 int redisReaderGetReply(redisReader *r, void **reply);
 
 #define redisReaderSetPrivdata(_r, _p) (int)(((redisReader*)(_r))->privdata = (_p))

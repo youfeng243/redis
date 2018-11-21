@@ -35,6 +35,7 @@
 /* Things exported from t_zset.c only for geo.c, since it is the only other
  * part of Redis that requires close zset introspection. */
 unsigned char *zzlFirstInRange(unsigned char *zl, zrangespec *range);
+
 int zslValueLteMax(double value, zrangespec *spec);
 
 /* ====================================================================
@@ -63,10 +64,10 @@ geoArray *geoArrayCreate(void) {
  * it with data. */
 geoPoint *geoArrayAppend(geoArray *ga) {
     if (ga->used == ga->buckets) {
-        ga->buckets = (ga->buckets == 0) ? 8 : ga->buckets*2;
-        ga->array = zrealloc(ga->array,sizeof(geoPoint)*ga->buckets);
+        ga->buckets = (ga->buckets == 0) ? 8 : ga->buckets * 2;
+        ga->array = zrealloc(ga->array, sizeof(geoPoint) * ga->buckets);
     }
-    geoPoint *gp = ga->array+ga->used;
+    geoPoint *gp = ga->array + ga->used;
     ga->used++;
     return gp;
 }
@@ -83,7 +84,7 @@ void geoArrayFree(geoArray *ga) {
  * Helpers
  * ==================================================================== */
 int decodeGeohash(double bits, double *xy) {
-    GeoHashBits hash = { .bits = (uint64_t)bits, .step = GEO_STEP_MAX };
+    GeoHashBits hash = {.bits = (uint64_t) bits, .step = GEO_STEP_MAX};
     return geohashDecodeToLongLatWGS84(hash, xy);
 }
 
@@ -99,9 +100,9 @@ int extractLongLatOrReply(client *c, robj **argv, double *xy) {
         }
     }
     if (xy[0] < GEO_LONG_MIN || xy[0] > GEO_LONG_MAX ||
-        xy[1] < GEO_LAT_MIN  || xy[1] > GEO_LAT_MAX) {
+        xy[1] < GEO_LAT_MIN || xy[1] > GEO_LAT_MAX) {
         addReplySds(c, sdscatprintf(sdsempty(),
-            "-ERR invalid longitude,latitude pair %f,%f\r\n",xy[0],xy[1]));
+                                    "-ERR invalid longitude,latitude pair %f,%f\r\n", xy[0], xy[1]));
         return C_ERR;
     }
     return C_OK;
@@ -137,7 +138,7 @@ double extractUnitOrReply(client *c, robj *unit) {
         return 1609.34;
     } else {
         addReplyError(c,
-            "unsupported unit provided. please use m, km, ft, mi");
+                      "unsupported unit provided. please use m, km, ft, mi");
         return -1;
     }
 }
@@ -150,7 +151,7 @@ double extractUnitOrReply(client *c, robj *unit) {
  *
  * On error a value less than zero is returned. */
 double extractDistanceOrReply(client *c, robj **argv,
-                                     double *conversion) {
+                              double *conversion) {
     double distance;
     if (getDoubleFromObjectOrReply(c, argv[0], &distance,
                                    "need numeric radius") != C_OK) {
@@ -158,11 +159,11 @@ double extractDistanceOrReply(client *c, robj **argv,
     }
 
     if (distance < 0) {
-        addReplyError(c,"radius cannot be negative");
+        addReplyError(c, "radius cannot be negative");
         return -1;
     }
 
-    double to_meters = extractUnitOrReply(c,argv[1]);
+    double to_meters = extractUnitOrReply(c, argv[1]);
     if (to_meters < 0) {
         return -1;
     }
@@ -191,12 +192,11 @@ void addReplyDoubleDistance(client *c, double d) {
 int geoAppendIfWithinRadius(geoArray *ga, double lon, double lat, double radius, double score, sds member) {
     double distance, xy[2];
 
-    if (!decodeGeohash(score,xy)) return C_ERR; /* Can't decode. */
+    if (!decodeGeohash(score, xy)) return C_ERR; /* Can't decode. */
     /* Note that geohashGetDistanceIfInRadiusWGS84() takes arguments in
      * reverse order: longitude first, latitude later. */
-    if (!geohashGetDistanceIfInRadiusWGS84(lon,lat, xy[0], xy[1],
-                                           radius, &distance))
-    {
+    if (!geohashGetDistanceIfInRadiusWGS84(lon, lat, xy[0], xy[1],
+                                           radius, &distance)) {
         return C_ERR;
     }
 
@@ -225,7 +225,7 @@ int geoAppendIfWithinRadius(geoArray *ga, double lon, double lat, double radius,
 int geoGetPointsInRange(robj *zobj, double min, double max, double lon, double lat, double radius, geoArray *ga) {
     /* minex 0 = include min in range; maxex 1 = exclude max in range */
     /* That's: min <= val < max */
-    zrangespec range = { .min = min, .max = max, .minex = 0, .maxex = 1 };
+    zrangespec range = {.min = min, .max = max, .minex = 0, .maxex = 1};
     size_t origincount = ga->used;
     sds member;
 
@@ -253,9 +253,10 @@ int geoGetPointsInRange(robj *zobj, double min, double max, double lon, double l
             /* We know the element exists. ziplistGet should always succeed */
             ziplistGet(eptr, &vstr, &vlen, &vlong);
             member = (vstr == NULL) ? sdsfromlonglong(vlong) :
-                                      sdsnewlen(vstr,vlen);
-            if (geoAppendIfWithinRadius(ga,lon,lat,radius,score,member)
-                == C_ERR) sdsfree(member);
+                     sdsnewlen(vstr, vlen);
+            if (geoAppendIfWithinRadius(ga, lon, lat, radius, score, member)
+                == C_ERR)
+                sdsfree(member);
             zzlNext(zl, &eptr, &sptr);
         }
     } else if (zobj->encoding == OBJ_ENCODING_SKIPLIST) {
@@ -275,8 +276,9 @@ int geoGetPointsInRange(robj *zobj, double min, double max, double lon, double l
                 break;
 
             ele = sdsdup(ele);
-            if (geoAppendIfWithinRadius(ga,lon,lat,radius,ln->score,ele)
-                == C_ERR) sdsfree(ele);
+            if (geoAppendIfWithinRadius(ga, lon, lat, radius, ln->score, ele)
+                == C_ERR)
+                sdsfree(ele);
             ln = ln->level[0].forward;
         }
     }
@@ -318,7 +320,7 @@ void scoresOfGeoHashBox(GeoHashBits hash, GeoHashFix52Bits *min, GeoHashFix52Bit
 int membersOfGeoHashBox(robj *zobj, GeoHashBits hash, geoArray *ga, double lon, double lat, double radius) {
     GeoHashFix52Bits min, max;
 
-    scoresOfGeoHashBox(hash,&min,&max);
+    scoresOfGeoHashBox(hash, &min, &max);
     return geoGetPointsInRange(zobj, min, max, lon, lat, radius, ga);
 }
 
@@ -342,19 +344,19 @@ int membersOfAllNeighbors(robj *zobj, GeoHashRadius n, double lon, double lat, d
      * members and add them to the potential result list. */
     for (i = 0; i < sizeof(neighbors) / sizeof(*neighbors); i++) {
         if (HASHISZERO(neighbors[i])) {
-            if (debugmsg) D("neighbors[%d] is zero",i);
+            if (debugmsg) D("neighbors[%d] is zero", i);
             continue;
         }
 
         /* Debugging info. */
         if (debugmsg) {
             GeoHashRange long_range, lat_range;
-            geohashGetCoordRange(&long_range,&lat_range);
+            geohashGetCoordRange(&long_range, &lat_range);
             GeoHashArea myarea = {{0}};
             geohashDecode(long_range, lat_range, neighbors[i], &myarea);
 
             /* Dump center square. */
-            D("neighbors[%d]:\n",i);
+            D("neighbors[%d]:\n", i);
             D("area.longitude.min: %f\n", myarea.longitude.min);
             D("area.longitude.max: %f\n", myarea.longitude.max);
             D("area.latitude.min: %f\n", myarea.latitude.min);
@@ -368,10 +370,9 @@ int membersOfAllNeighbors(robj *zobj, GeoHashRadius n, double lon, double lat, d
          * processed previously. */
         if (last_processed &&
             neighbors[i].bits == neighbors[last_processed].bits &&
-            neighbors[i].step == neighbors[last_processed].step)
-        {
+            neighbors[i].step == neighbors[last_processed].step) {
             if (debugmsg)
-                D("Skipping processing of %d, same as previous\n",i);
+                D("Skipping processing of %d, same as previous\n", i);
             continue;
         }
         count += membersOfGeoHashBox(zobj, neighbors[i], ga, lon, lat, radius);
@@ -412,9 +413,9 @@ void geoaddCommand(client *c) {
     }
 
     int elements = (c->argc - 2) / 3;
-    int argc = 2+elements*2; /* ZADD key score ele ... */
-    robj **argv = zcalloc(argc*sizeof(robj*));
-    argv[0] = createRawStringObject("zadd",4);
+    int argc = 2 + elements * 2; /* ZADD key score ele ... */
+    robj **argv = zcalloc(argc * sizeof(robj *));
+    argv[0] = createRawStringObject("zadd", 4);
     argv[1] = c->argv[1]; /* key */
     incrRefCount(argv[1]);
 
@@ -425,7 +426,7 @@ void geoaddCommand(client *c) {
     for (i = 0; i < elements; i++) {
         double xy[2];
 
-        if (extractLongLatOrReply(c, (c->argv+2)+(i*3),xy) == C_ERR) {
+        if (extractLongLatOrReply(c, (c->argv + 2) + (i * 3), xy) == C_ERR) {
             for (i = 0; i < argc; i++)
                 if (argv[i]) decrRefCount(argv[i]);
             zfree(argv);
@@ -438,13 +439,13 @@ void geoaddCommand(client *c) {
         GeoHashFix52Bits bits = geohashAlign52Bits(hash);
         robj *score = createObject(OBJ_STRING, sdsfromlonglong(bits));
         robj *val = c->argv[2 + i * 3 + 2];
-        argv[2+i*2] = score;
-        argv[3+i*2] = val;
+        argv[2 + i * 2] = score;
+        argv[3 + i * 2] = val;
         incrRefCount(val);
     }
 
     /* Finally call ZADD that will do the work for us. */
-    replaceClientCommandVector(c,argc,argv);
+    replaceClientCommandVector(c, argc, argv);
     zaddCommand(c);
 }
 
@@ -473,7 +474,7 @@ void georadiusGeneric(client *c, int flags) {
 
     /* Find long/lat to use for radius search based on inquiry type */
     int base_args;
-    double xy[2] = { 0 };
+    double xy[2] = {0};
     if (flags & RADIUS_COORDS) {
         base_args = 6;
         if (extractLongLatOrReply(c, c->argv + 2, xy) == C_ERR)
@@ -515,26 +516,25 @@ void georadiusGeneric(client *c, int flags) {
                 sort = SORT_ASC;
             } else if (!strcasecmp(arg, "desc")) {
                 sort = SORT_DESC;
-            } else if (!strcasecmp(arg, "count") && (i+1) < remaining) {
-                if (getLongLongFromObjectOrReply(c, c->argv[base_args+i+1],
-                    &count, NULL) != C_OK) return;
+            } else if (!strcasecmp(arg, "count") && (i + 1) < remaining) {
+                if (getLongLongFromObjectOrReply(c, c->argv[base_args + i + 1],
+                                                 &count, NULL) != C_OK)
+                    return;
                 if (count <= 0) {
-                    addReplyError(c,"COUNT must be > 0");
+                    addReplyError(c, "COUNT must be > 0");
                     return;
                 }
                 i++;
             } else if (!strcasecmp(arg, "store") &&
-                       (i+1) < remaining &&
-                       !(flags & RADIUS_NOSTORE))
-            {
-                storekey = c->argv[base_args+i+1];
+                       (i + 1) < remaining &&
+                       !(flags & RADIUS_NOSTORE)) {
+                storekey = c->argv[base_args + i + 1];
                 storedist = 0;
                 i++;
             } else if (!strcasecmp(arg, "storedist") &&
-                       (i+1) < remaining &&
-                       !(flags & RADIUS_NOSTORE))
-            {
-                storekey = c->argv[base_args+i+1];
+                       (i + 1) < remaining &&
+                       !(flags & RADIUS_NOSTORE)) {
+                storekey = c->argv[base_args + i + 1];
                 storedist = 1;
                 i++;
             } else {
@@ -547,8 +547,8 @@ void georadiusGeneric(client *c, int flags) {
     /* Trap options not compatible with STORE and STOREDIST. */
     if (storekey && (withdist || withhash || withcoords)) {
         addReplyError(c,
-            "STORE option in GEORADIUS is not compatible with "
-            "WITHDIST, WITHHASH and WITHCOORDS options");
+                      "STORE option in GEORADIUS is not compatible with "
+                      "WITHDIST, WITHHASH and WITHCOORDS options");
         return;
     }
 
@@ -558,7 +558,7 @@ void georadiusGeneric(client *c, int flags) {
 
     /* Get all neighbor geohash boxes for our radius search */
     GeoHashRadius georadius =
-        geohashGetAreasByRadiusWGS84(xy[0], xy[1], radius_meters);
+            geohashGetAreasByRadiusWGS84(xy[0], xy[1], radius_meters);
 
     /* Search the zset for all matching points */
     geoArray *ga = geoArrayCreate();
@@ -606,7 +606,7 @@ void georadiusGeneric(client *c, int flags) {
         /* Finally send results back to the caller */
         int i;
         for (i = 0; i < returned_items; i++) {
-            geoPoint *gp = ga->array+i;
+            geoPoint *gp = ga->array + i;
             gp->dist /= conversion; /* Fix according to unit. */
 
             /* If we have options in option_length, return each sub-result
@@ -615,7 +615,7 @@ void georadiusGeneric(client *c, int flags) {
             if (option_length)
                 addReplyMultiBulkLen(c, option_length + 1);
 
-            addReplyBulkSds(c,gp->member);
+            addReplyBulkSds(c, gp->member);
             gp->member = NULL;
 
             if (withdist)
@@ -644,27 +644,27 @@ void georadiusGeneric(client *c, int flags) {
 
         for (i = 0; i < returned_items; i++) {
             zskiplistNode *znode;
-            geoPoint *gp = ga->array+i;
+            geoPoint *gp = ga->array + i;
             gp->dist /= conversion; /* Fix according to unit. */
             double score = storedist ? gp->dist : gp->score;
             size_t elelen = sdslen(gp->member);
 
             if (maxelelen < elelen) maxelelen = elelen;
-            znode = zslInsert(zs->zsl,score,gp->member);
-            serverAssert(dictAdd(zs->dict,gp->member,&znode->score) == DICT_OK);
+            znode = zslInsert(zs->zsl, score, gp->member);
+            serverAssert(dictAdd(zs->dict, gp->member, &znode->score) == DICT_OK);
             gp->member = NULL;
         }
 
         if (returned_items) {
-            zsetConvertToZiplistIfNeeded(zobj,maxelelen);
-            setKey(c->db,storekey,zobj);
+            zsetConvertToZiplistIfNeeded(zobj, maxelelen);
+            setKey(c->db, storekey, zobj);
             decrRefCount(zobj);
-            notifyKeyspaceEvent(NOTIFY_LIST,"georadiusstore",storekey,
+            notifyKeyspaceEvent(NOTIFY_LIST, "georadiusstore", storekey,
                                 c->db->id);
             server.dirty += returned_items;
-        } else if (dbDelete(c->db,storekey)) {
-            signalModifiedKey(c->db,storekey);
-            notifyKeyspaceEvent(NOTIFY_GENERIC,"del",storekey,c->db->id);
+        } else if (dbDelete(c->db, storekey)) {
+            signalModifiedKey(c->db, storekey);
+            notifyKeyspaceEvent(NOTIFY_GENERIC, "del", storekey, c->db->id);
             server.dirty++;
         }
         addReplyLongLong(c, returned_items);
@@ -684,12 +684,12 @@ void georadiusbymemberCommand(client *c) {
 
 /* GEORADIUS_RO wrapper function. */
 void georadiusroCommand(client *c) {
-    georadiusGeneric(c, RADIUS_COORDS|RADIUS_NOSTORE);
+    georadiusGeneric(c, RADIUS_COORDS | RADIUS_NOSTORE);
 }
 
 /* GEORADIUSBYMEMBER_RO wrapper function. */
 void georadiusbymemberroCommand(client *c) {
-    georadiusGeneric(c, RADIUS_MEMBER|RADIUS_NOSTORE);
+    georadiusGeneric(c, RADIUS_MEMBER | RADIUS_NOSTORE);
 }
 
 /* GEOHASH key ele1 ele2 ... eleN
@@ -697,7 +697,7 @@ void georadiusbymemberroCommand(client *c) {
  * Returns an array with an 11 characters geohash representation of the
  * position of the specified elements. */
 void geohashCommand(client *c) {
-    char *geoalphabet= "0123456789bcdefghjkmnpqrstuvwxyz";
+    char *geoalphabet = "0123456789bcdefghjkmnpqrstuvwxyz";
     int j;
 
     /* Look up the requested zset */
@@ -706,11 +706,11 @@ void geohashCommand(client *c) {
 
     /* Geohash elements one after the other, using a null bulk reply for
      * missing elements. */
-    addReplyMultiBulkLen(c,c->argc-2);
+    addReplyMultiBulkLen(c, c->argc - 2);
     for (j = 2; j < c->argc; j++) {
         double score;
         if (!zobj || zsetScore(zobj, c->argv[j]->ptr, &score) == C_ERR) {
-            addReply(c,shared.nullbulk);
+            addReply(c, shared.nullbulk);
         } else {
             /* The internal format we use for geocoding is a bit different
              * than the standard, since we use as initial latitude range
@@ -720,8 +720,8 @@ void geohashCommand(client *c) {
 
             /* Decode... */
             double xy[2];
-            if (!decodeGeohash(score,xy)) {
-                addReply(c,shared.nullbulk);
+            if (!decodeGeohash(score, xy)) {
+                addReply(c, shared.nullbulk);
                 continue;
             }
 
@@ -732,16 +732,16 @@ void geohashCommand(client *c) {
             r[0].max = 180;
             r[1].min = -90;
             r[1].max = 90;
-            geohashEncode(&r[0],&r[1],xy[0],xy[1],26,&hash);
+            geohashEncode(&r[0], &r[1], xy[0], xy[1], 26, &hash);
 
             char buf[12];
             int i;
             for (i = 0; i < 11; i++) {
-                int idx = (hash.bits >> (52-((i+1)*5))) & 0x1f;
+                int idx = (hash.bits >> (52 - ((i + 1) * 5))) & 0x1f;
                 buf[i] = geoalphabet[idx];
             }
             buf[11] = '\0';
-            addReplyBulkCBuffer(c,buf,11);
+            addReplyBulkCBuffer(c, buf, 11);
         }
     }
 }
@@ -759,21 +759,21 @@ void geoposCommand(client *c) {
 
     /* Report elements one after the other, using a null bulk reply for
      * missing elements. */
-    addReplyMultiBulkLen(c,c->argc-2);
+    addReplyMultiBulkLen(c, c->argc - 2);
     for (j = 2; j < c->argc; j++) {
         double score;
         if (!zobj || zsetScore(zobj, c->argv[j]->ptr, &score) == C_ERR) {
-            addReply(c,shared.nullmultibulk);
+            addReply(c, shared.nullmultibulk);
         } else {
             /* Decode... */
             double xy[2];
-            if (!decodeGeohash(score,xy)) {
-                addReply(c,shared.nullmultibulk);
+            if (!decodeGeohash(score, xy)) {
+                addReply(c, shared.nullmultibulk);
                 continue;
             }
-            addReplyMultiBulkLen(c,2);
-            addReplyHumanLongDouble(c,xy[0]);
-            addReplyHumanLongDouble(c,xy[1]);
+            addReplyMultiBulkLen(c, 2);
+            addReplyHumanLongDouble(c, xy[0]);
+            addReplyHumanLongDouble(c, xy[1]);
         }
     }
 }
@@ -788,31 +788,31 @@ void geodistCommand(client *c) {
 
     /* Check if there is the unit to extract, otherwise assume meters. */
     if (c->argc == 5) {
-        to_meter = extractUnitOrReply(c,c->argv[4]);
+        to_meter = extractUnitOrReply(c, c->argv[4]);
         if (to_meter < 0) return;
     } else if (c->argc > 5) {
-        addReply(c,shared.syntaxerr);
+        addReply(c, shared.syntaxerr);
         return;
     }
 
     /* Look up the requested zset */
     robj *zobj = NULL;
     if ((zobj = lookupKeyReadOrReply(c, c->argv[1], shared.nullbulk))
-        == NULL || checkType(c, zobj, OBJ_ZSET)) return;
+        == NULL || checkType(c, zobj, OBJ_ZSET))
+        return;
 
     /* Get the scores. We need both otherwise NULL is returned. */
     double score1, score2, xyxy[4];
     if (zsetScore(zobj, c->argv[2]->ptr, &score1) == C_ERR ||
-        zsetScore(zobj, c->argv[3]->ptr, &score2) == C_ERR)
-    {
-        addReply(c,shared.nullbulk);
+        zsetScore(zobj, c->argv[3]->ptr, &score2) == C_ERR) {
+        addReply(c, shared.nullbulk);
         return;
     }
 
     /* Decode & compute the distance. */
-    if (!decodeGeohash(score1,xyxy) || !decodeGeohash(score2,xyxy+2))
-        addReply(c,shared.nullbulk);
+    if (!decodeGeohash(score1, xyxy) || !decodeGeohash(score2, xyxy + 2))
+        addReply(c, shared.nullbulk);
     else
         addReplyDoubleDistance(c,
-            geohashGetDistance(xyxy[0],xyxy[1],xyxy[2],xyxy[3]) / to_meter);
+                               geohashGetDistance(xyxy[0], xyxy[1], xyxy[2], xyxy[3]) / to_meter);
 }

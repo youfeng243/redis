@@ -95,21 +95,32 @@ typedef struct {
  * -1:failed
  */
 void geohashGetCoordRange(GeoHashRange *long_range, GeoHashRange *lat_range);
+
 int geohashEncode(const GeoHashRange *long_range, const GeoHashRange *lat_range,
                   double longitude, double latitude, uint8_t step,
                   GeoHashBits *hash);
+
 int geohashEncodeType(double longitude, double latitude,
                       uint8_t step, GeoHashBits *hash);
+
 int geohashEncodeWGS84(double longitude, double latitude, uint8_t step,
                        GeoHashBits *hash);
+
 int geohashDecode(const GeoHashRange long_range, const GeoHashRange lat_range,
                   const GeoHashBits hash, GeoHashArea *area);
+
 int geohashDecodeType(const GeoHashBits hash, GeoHashArea *area);
+
 int geohashDecodeWGS84(const GeoHashBits hash, GeoHashArea *area);
+
 int geohashDecodeAreaToLongLat(const GeoHashArea *area, double *xy);
+
 int geohashDecodeToLongLatType(const GeoHashBits hash, double *xy);
+
 int geohashDecodeToLongLatWGS84(const GeoHashBits hash, double *xy);
+
 int geohashDecodeToLongLatMercator(const GeoHashBits hash, double *xy);
+
 void geohashNeighbors(const GeoHashBits *hash, GeoHashNeighbors *neighbors);
 
 #if defined(__cplusplus)

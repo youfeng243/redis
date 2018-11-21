@@ -12,18 +12,18 @@
 
 #define UNUSED JEMALLOC_ATTR(unused)
 
-#define ZU(z)	((size_t)z)
-#define ZD(z)	((ssize_t)z)
-#define QU(q)	((uint64_t)q)
-#define QD(q)	((int64_t)q)
+#define ZU(z)    ((size_t)z)
+#define ZD(z)    ((ssize_t)z)
+#define QU(q)    ((uint64_t)q)
+#define QD(q)    ((int64_t)q)
 
-#define KZU(z)	ZU(z##ULL)
-#define KZD(z)	ZD(z##LL)
-#define KQU(q)	QU(q##ULL)
-#define KQD(q)	QI(q##LL)
+#define KZU(z)    ZU(z##ULL)
+#define KZD(z)    ZD(z##LL)
+#define KQU(q)    QU(q##ULL)
+#define KQD(q)    QI(q##LL)
 
 #ifndef __DECONST
-#  define	__DECONST(type, var)	((type)(uintptr_t)(const void *)(var))
+#  define    __DECONST(type, var)    ((type)(uintptr_t)(const void *)(var))
 #endif
 
 #if !defined(JEMALLOC_HAS_RESTRICT) || defined(__cplusplus)

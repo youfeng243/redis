@@ -1,4 +1,5 @@
 #include <iostream>
+
 using namespace std;
 
 #include <QCoreApplication>
@@ -6,10 +7,10 @@ using namespace std;
 
 #include "example-qt.h"
 
-void getCallback(redisAsyncContext *, void * r, void * privdata) {
+void getCallback(redisAsyncContext *, void *r, void *privdata) {
 
-    redisReply * reply = static_cast<redisReply *>(r);
-    ExampleQt * ex = static_cast<ExampleQt *>(privdata);
+    redisReply *reply = static_cast<redisReply *>(r);
+    ExampleQt *ex = static_cast<ExampleQt *>(privdata);
     if (reply == nullptr || ex == nullptr) return;
 
     cout << "key: " << reply->str << endl;
@@ -33,11 +34,11 @@ void ExampleQt::run() {
     redisAsyncCommand(m_ctx, getCallback, this, "GET key");
 }
 
-int main (int argc, char **argv) {
+int main(int argc, char **argv) {
 
     QCoreApplication app(argc, argv);
 
-    ExampleQt example(argv[argc-1]);
+    ExampleQt example(argv[argc - 1]);
 
     QObject::connect(&example, SIGNAL(finished()), &app, SLOT(quit()));
     QTimer::singleShot(0, &example, SLOT(run()));

@@ -23,9 +23,9 @@
  *   smootheststep(x) = -20x  + 70x  - 84x  + 35x
  */
 
-#define SMOOTHSTEP_VARIANT	"smoother"
-#define SMOOTHSTEP_NSTEPS	200
-#define SMOOTHSTEP_BFP		24
+#define SMOOTHSTEP_VARIANT    "smoother"
+#define SMOOTHSTEP_NSTEPS    200
+#define SMOOTHSTEP_BFP        24
 #define SMOOTHSTEP \
  /* STEP(step, h,                            x,     y) */ \
     STEP(   1, UINT64_C(0x0000000000000014), 0.005, 0.000001240643750) \

@@ -33,9 +33,13 @@
 #include "fmacros.h"
 #include <string.h>
 #include <stdlib.h>
+
 #ifndef _MSC_VER
+
 #include <unistd.h>
+
 #endif
+
 #include <assert.h>
 #include <errno.h>
 #include <ctype.h>
@@ -64,30 +68,40 @@ static void __redisReaderSetError(redisReader *r, int type, const char *str) {
     /* Set error. */
     r->err = type;
     len = strlen(str);
-    len = len < (sizeof(r->errstr)-1) ? len : (sizeof(r->errstr)-1);
-    memcpy(r->errstr,str,len);
+    len = len < (sizeof(r->errstr) - 1) ? len : (sizeof(r->errstr) - 1);
+    memcpy(r->errstr, str, len);
     r->errstr[len] = '\0';
 }
 
 static size_t chrtos(char *buf, size_t size, char byte) {
     size_t len = 0;
 
-    switch(byte) {
-    case '\\':
-    case '"':
-        len = snprintf(buf,size,"\"\\%c\"",byte);
-        break;
-    case '\n': len = snprintf(buf,size,"\"\\n\""); break;
-    case '\r': len = snprintf(buf,size,"\"\\r\""); break;
-    case '\t': len = snprintf(buf,size,"\"\\t\""); break;
-    case '\a': len = snprintf(buf,size,"\"\\a\""); break;
-    case '\b': len = snprintf(buf,size,"\"\\b\""); break;
-    default:
-        if (isprint(byte))
-            len = snprintf(buf,size,"\"%c\"",byte);
-        else
-            len = snprintf(buf,size,"\"\\x%02x\"",(unsigned char)byte);
-        break;
+    switch (byte) {
+        case '\\':
+        case '"':
+            len = snprintf(buf, size, "\"\\%c\"", byte);
+            break;
+        case '\n':
+            len = snprintf(buf, size, "\"\\n\"");
+            break;
+        case '\r':
+            len = snprintf(buf, size, "\"\\r\"");
+            break;
+        case '\t':
+            len = snprintf(buf, size, "\"\\t\"");
+            break;
+        case '\a':
+            len = snprintf(buf, size, "\"\\a\"");
+            break;
+        case '\b':
+            len = snprintf(buf, size, "\"\\b\"");
+            break;
+        default:
+            if (isprint(byte))
+                len = snprintf(buf, size, "\"%c\"", byte);
+            else
+                len = snprintf(buf, size, "\"\\x%02x\"", (unsigned char) byte);
+            break;
     }
 
     return len;
@@ -96,20 +110,20 @@ static size_t chrtos(char *buf, size_t size, char byte) {
 static void __redisReaderSetErrorProtocolByte(redisReader *r, char byte) {
     char cbuf[8], sbuf[128];
 
-    chrtos(cbuf,sizeof(cbuf),byte);
-    snprintf(sbuf,sizeof(sbuf),
-        "Protocol error, got %s as reply type byte", cbuf);
-    __redisReaderSetError(r,REDIS_ERR_PROTOCOL,sbuf);
+    chrtos(cbuf, sizeof(cbuf), byte);
+    snprintf(sbuf, sizeof(sbuf),
+             "Protocol error, got %s as reply type byte", cbuf);
+    __redisReaderSetError(r, REDIS_ERR_PROTOCOL, sbuf);
 }
 
 static void __redisReaderSetErrorOOM(redisReader *r) {
-    __redisReaderSetError(r,REDIS_ERR_OOM,"Out of memory");
+    __redisReaderSetError(r, REDIS_ERR_OOM, "Out of memory");
 }
 
 static char *readBytes(redisReader *r, unsigned int bytes) {
     char *p;
-    if (r->len-r->pos >= bytes) {
-        p = r->buf+r->pos;
+    if (r->len - r->pos >= bytes) {
+        p = r->buf + r->pos;
         r->pos += bytes;
         return p;
     }
@@ -119,21 +133,21 @@ static char *readBytes(redisReader *r, unsigned int bytes) {
 /* Find pointer to \r\n. */
 static char *seekNewline(char *s, size_t len) {
     int pos = 0;
-    int _len = len-1;
+    int _len = len - 1;
 
     /* Position should be < len-1 because the character at "pos" should be
      * followed by a \n. Note that strchr cannot be used because it doesn't
      * allow to search a limited length and the buffer that is being searched
      * might not have a trailing NULL character. */
     while (pos < _len) {
-        while(pos < _len && s[pos] != '\r') pos++;
-        if (pos==_len) {
+        while (pos < _len && s[pos] != '\r') pos++;
+        if (pos == _len) {
             /* Not found. */
             return NULL;
         } else {
-            if (s[pos+1] == '\n') {
+            if (s[pos + 1] == '\n') {
                 /* Found. */
-                return s+pos;
+                return s + pos;
             } else {
                 /* Continue searching. */
                 pos++;
@@ -169,18 +183,18 @@ static long long readLongLong(char *s) {
         }
     }
 
-    return mult*v;
+    return mult * v;
 }
 
 static char *readLine(redisReader *r, int *_len) {
     char *p, *s;
     int len;
 
-    p = r->buf+r->pos;
-    s = seekNewline(p,(r->len-r->pos));
+    p = r->buf + r->pos;
+    s = seekNewline(p, (r->len - r->pos));
     if (s != NULL) {
-        len = s-(r->buf+r->pos);
-        r->pos += len+2; /* skip \r\n */
+        len = s - (r->buf + r->pos);
+        r->pos += len + 2; /* skip \r\n */
         if (_len) *_len = len;
         return p;
     }
@@ -197,9 +211,9 @@ static void moveToNextTask(redisReader *r) {
         }
 
         cur = &(r->rstack[r->ridx]);
-        prv = &(r->rstack[r->ridx-1]);
+        prv = &(r->rstack[r->ridx - 1]);
         assert(prv->type == REDIS_REPLY_ARRAY);
-        if (cur->idx == prv->elements-1) {
+        if (cur->idx == prv->elements - 1) {
             r->ridx--;
         } else {
             /* Reset the type because the next item can be anything */
@@ -218,18 +232,18 @@ static int processLineItem(redisReader *r) {
     char *p;
     int len;
 
-    if ((p = readLine(r,&len)) != NULL) {
+    if ((p = readLine(r, &len)) != NULL) {
         if (cur->type == REDIS_REPLY_INTEGER) {
             if (r->fn && r->fn->createInteger)
-                obj = r->fn->createInteger(cur,readLongLong(p));
+                obj = r->fn->createInteger(cur, readLongLong(p));
             else
-                obj = (void*)REDIS_REPLY_INTEGER;
+                obj = (void *) REDIS_REPLY_INTEGER;
         } else {
             /* Type will be error or status. */
             if (r->fn && r->fn->createString)
-                obj = r->fn->createString(cur,p,len);
+                obj = r->fn->createString(cur, p, len);
             else
-                obj = (void*)(size_t)(cur->type);
+                obj = (void *) (size_t) (cur->type);
         }
 
         if (obj == NULL) {
@@ -254,11 +268,11 @@ static int processBulkItem(redisReader *r) {
     unsigned long bytelen;
     int success = 0;
 
-    p = r->buf+r->pos;
-    s = seekNewline(p,r->len-r->pos);
+    p = r->buf + r->pos;
+    s = seekNewline(p, r->len - r->pos);
     if (s != NULL) {
-        p = r->buf+r->pos;
-        bytelen = s-(r->buf+r->pos)+2; /* include \r\n */
+        p = r->buf + r->pos;
+        bytelen = s - (r->buf + r->pos) + 2; /* include \r\n */
         len = readLongLong(p);
 
         if (len < 0) {
@@ -266,16 +280,16 @@ static int processBulkItem(redisReader *r) {
             if (r->fn && r->fn->createNil)
                 obj = r->fn->createNil(cur);
             else
-                obj = (void*)REDIS_REPLY_NIL;
+                obj = (void *) REDIS_REPLY_NIL;
             success = 1;
         } else {
             /* Only continue when the buffer contains the entire bulk item. */
-            bytelen += len+2; /* include \r\n */
-            if (r->pos+bytelen <= r->len) {
+            bytelen += len + 2; /* include \r\n */
+            if (r->pos + bytelen <= r->len) {
                 if (r->fn && r->fn->createString)
-                    obj = r->fn->createString(cur,s+2,len);
+                    obj = r->fn->createString(cur, s + 2, len);
                 else
-                    obj = (void*)REDIS_REPLY_STRING;
+                    obj = (void *) REDIS_REPLY_STRING;
                 success = 1;
             }
         }
@@ -308,12 +322,12 @@ static int processMultiBulkItem(redisReader *r) {
 
     /* Set error for nested multi bulks with depth > 7 */
     if (r->ridx == 8) {
-        __redisReaderSetError(r,REDIS_ERR_PROTOCOL,
-            "No support for nested multi bulk replies with depth > 7");
+        __redisReaderSetError(r, REDIS_ERR_PROTOCOL,
+                              "No support for nested multi bulk replies with depth > 7");
         return REDIS_ERR;
     }
 
-    if ((p = readLine(r,NULL)) != NULL) {
+    if ((p = readLine(r, NULL)) != NULL) {
         elements = readLongLong(p);
         root = (r->ridx == 0);
 
@@ -321,7 +335,7 @@ static int processMultiBulkItem(redisReader *r) {
             if (r->fn && r->fn->createNil)
                 obj = r->fn->createNil(cur);
             else
-                obj = (void*)REDIS_REPLY_NIL;
+                obj = (void *) REDIS_REPLY_NIL;
 
             if (obj == NULL) {
                 __redisReaderSetErrorOOM(r);
@@ -331,9 +345,9 @@ static int processMultiBulkItem(redisReader *r) {
             moveToNextTask(r);
         } else {
             if (r->fn && r->fn->createArray)
-                obj = r->fn->createArray(cur,elements);
+                obj = r->fn->createArray(cur, elements);
             else
-                obj = (void*)REDIS_REPLY_ARRAY;
+                obj = (void *) REDIS_REPLY_ARRAY;
 
             if (obj == NULL) {
                 __redisReaderSetErrorOOM(r);
@@ -370,26 +384,26 @@ static int processItem(redisReader *r) {
 
     /* check if we need to read type */
     if (cur->type < 0) {
-        if ((p = readBytes(r,1)) != NULL) {
+        if ((p = readBytes(r, 1)) != NULL) {
             switch (p[0]) {
-            case '-':
-                cur->type = REDIS_REPLY_ERROR;
-                break;
-            case '+':
-                cur->type = REDIS_REPLY_STATUS;
-                break;
-            case ':':
-                cur->type = REDIS_REPLY_INTEGER;
-                break;
-            case '$':
-                cur->type = REDIS_REPLY_STRING;
-                break;
-            case '*':
-                cur->type = REDIS_REPLY_ARRAY;
-                break;
-            default:
-                __redisReaderSetErrorProtocolByte(r,*p);
-                return REDIS_ERR;
+                case '-':
+                    cur->type = REDIS_REPLY_ERROR;
+                    break;
+                case '+':
+                    cur->type = REDIS_REPLY_STATUS;
+                    break;
+                case ':':
+                    cur->type = REDIS_REPLY_INTEGER;
+                    break;
+                case '$':
+                    cur->type = REDIS_REPLY_STRING;
+                    break;
+                case '*':
+                    cur->type = REDIS_REPLY_ARRAY;
+                    break;
+                default:
+                    __redisReaderSetErrorProtocolByte(r, *p);
+                    return REDIS_ERR;
             }
         } else {
             /* could not consume 1 byte */
@@ -398,25 +412,25 @@ static int processItem(redisReader *r) {
     }
 
     /* process typed item */
-    switch(cur->type) {
-    case REDIS_REPLY_ERROR:
-    case REDIS_REPLY_STATUS:
-    case REDIS_REPLY_INTEGER:
-        return processLineItem(r);
-    case REDIS_REPLY_STRING:
-        return processBulkItem(r);
-    case REDIS_REPLY_ARRAY:
-        return processMultiBulkItem(r);
-    default:
-        assert(NULL);
-        return REDIS_ERR; /* Avoid warning. */
+    switch (cur->type) {
+        case REDIS_REPLY_ERROR:
+        case REDIS_REPLY_STATUS:
+        case REDIS_REPLY_INTEGER:
+            return processLineItem(r);
+        case REDIS_REPLY_STRING:
+            return processBulkItem(r);
+        case REDIS_REPLY_ARRAY:
+            return processMultiBulkItem(r);
+        default:
+            assert(NULL);
+            return REDIS_ERR; /* Avoid warning. */
     }
 }
 
 redisReader *redisReaderCreateWithFunctions(redisReplyObjectFunctions *fn) {
     redisReader *r;
 
-    r = calloc(sizeof(redisReader),1);
+    r = calloc(sizeof(redisReader), 1);
     if (r == NULL)
         return NULL;
 
@@ -461,7 +475,7 @@ int redisReaderFeed(redisReader *r, const char *buf, size_t len) {
             assert(r->buf != NULL);
         }
 
-        newbuf = sdscatlen(r->buf,buf,len);
+        newbuf = sdscatlen(r->buf, buf, len);
         if (newbuf == NULL) {
             __redisReaderSetErrorOOM(r);
             return REDIS_ERR;
@@ -510,7 +524,7 @@ int redisReaderGetReply(redisReader *r, void **reply) {
     /* Discard part of the buffer when we've consumed at least 1k, to avoid
      * doing unnecessary calls to memmove() in sds.c. */
     if (r->pos >= 1024) {
-        sdsrange(r->buf,r->pos,-1);
+        sdsrange(r->buf, r->pos, -1);
         r->pos = 0;
         r->len = sdslen(r->buf);
     }

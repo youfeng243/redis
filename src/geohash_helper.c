@@ -55,6 +55,7 @@ const double MERCATOR_MAX = 20037726.37;
 const double MERCATOR_MIN = -20037726.37;
 
 static inline double deg_rad(double ang) { return ang * D_R; }
+
 static inline double rad_deg(double ang) { return ang / D_R; }
 
 /* This function is used in order to estimate the step (bits precision)
@@ -104,10 +105,10 @@ int geohashBoundingBox(double longitude, double latitude, double radius_meters,
                        double *bounds) {
     if (!bounds) return 0;
 
-    bounds[0] = longitude - rad_deg(radius_meters/EARTH_RADIUS_IN_METERS/cos(deg_rad(latitude)));
-    bounds[2] = longitude + rad_deg(radius_meters/EARTH_RADIUS_IN_METERS/cos(deg_rad(latitude)));
-    bounds[1] = latitude - rad_deg(radius_meters/EARTH_RADIUS_IN_METERS);
-    bounds[3] = latitude + rad_deg(radius_meters/EARTH_RADIUS_IN_METERS);
+    bounds[0] = longitude - rad_deg(radius_meters / EARTH_RADIUS_IN_METERS / cos(deg_rad(latitude)));
+    bounds[2] = longitude + rad_deg(radius_meters / EARTH_RADIUS_IN_METERS / cos(deg_rad(latitude)));
+    bounds[1] = latitude - rad_deg(radius_meters / EARTH_RADIUS_IN_METERS);
+    bounds[3] = latitude + rad_deg(radius_meters / EARTH_RADIUS_IN_METERS);
     return 1;
 }
 
@@ -129,12 +130,12 @@ GeoHashRadius geohashGetAreasByRadius(double longitude, double latitude, double 
     max_lon = bounds[2];
     max_lat = bounds[3];
 
-    steps = geohashEstimateStepsByRadius(radius_meters,latitude);
+    steps = geohashEstimateStepsByRadius(radius_meters, latitude);
 
-    geohashGetCoordRange(&long_range,&lat_range);
-    geohashEncode(&long_range,&lat_range,longitude,latitude,steps,&hash);
-    geohashNeighbors(&hash,&neighbors);
-    geohashDecode(long_range,lat_range,hash,&area);
+    geohashGetCoordRange(&long_range, &lat_range);
+    geohashEncode(&long_range, &lat_range, longitude, latitude, steps, &hash);
+    geohashNeighbors(&hash, &neighbors);
+    geohashDecode(long_range, lat_range, hash, &area);
 
     /* Check if the step is enough at the limits of the covered area.
      * Sometimes when the search area is near an edge of the
@@ -150,21 +151,25 @@ GeoHashRadius geohashGetAreasByRadius(double longitude, double latitude, double 
         geohashDecode(long_range, lat_range, neighbors.east, &east);
         geohashDecode(long_range, lat_range, neighbors.west, &west);
 
-        if (geohashGetDistance(longitude,latitude,longitude,north.latitude.max)
-            < radius_meters) decrease_step = 1;
-        if (geohashGetDistance(longitude,latitude,longitude,south.latitude.min)
-            < radius_meters) decrease_step = 1;
-        if (geohashGetDistance(longitude,latitude,east.longitude.max,latitude)
-            < radius_meters) decrease_step = 1;
-        if (geohashGetDistance(longitude,latitude,west.longitude.min,latitude)
-            < radius_meters) decrease_step = 1;
+        if (geohashGetDistance(longitude, latitude, longitude, north.latitude.max)
+            < radius_meters)
+            decrease_step = 1;
+        if (geohashGetDistance(longitude, latitude, longitude, south.latitude.min)
+            < radius_meters)
+            decrease_step = 1;
+        if (geohashGetDistance(longitude, latitude, east.longitude.max, latitude)
+            < radius_meters)
+            decrease_step = 1;
+        if (geohashGetDistance(longitude, latitude, west.longitude.min, latitude)
+            < radius_meters)
+            decrease_step = 1;
     }
 
     if (steps > 1 && decrease_step) {
         steps--;
-        geohashEncode(&long_range,&lat_range,longitude,latitude,steps,&hash);
-        geohashNeighbors(&hash,&neighbors);
-        geohashDecode(long_range,lat_range,hash,&area);
+        geohashEncode(&long_range, &lat_range, longitude, latitude, steps, &hash);
+        geohashNeighbors(&hash, &neighbors);
+        geohashDecode(long_range, lat_range, hash, &area);
     }
 
     /* Exclude the search areas that are useless. */

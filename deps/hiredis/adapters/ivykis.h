@@ -1,5 +1,6 @@
 #ifndef __HIREDIS_IVYKIS_H__
 #define __HIREDIS_IVYKIS_H__
+
 #include <iv.h>
 #include "../hiredis.h"
 #include "../async.h"
@@ -10,37 +11,37 @@ typedef struct redisIvykisEvents {
 } redisIvykisEvents;
 
 static void redisIvykisReadEvent(void *arg) {
-    redisAsyncContext *context = (redisAsyncContext *)arg;
+    redisAsyncContext *context = (redisAsyncContext *) arg;
     redisAsyncHandleRead(context);
 }
 
 static void redisIvykisWriteEvent(void *arg) {
-    redisAsyncContext *context = (redisAsyncContext *)arg;
+    redisAsyncContext *context = (redisAsyncContext *) arg;
     redisAsyncHandleWrite(context);
 }
 
 static void redisIvykisAddRead(void *privdata) {
-    redisIvykisEvents *e = (redisIvykisEvents*)privdata;
+    redisIvykisEvents *e = (redisIvykisEvents *) privdata;
     iv_fd_set_handler_in(&e->fd, redisIvykisReadEvent);
 }
 
 static void redisIvykisDelRead(void *privdata) {
-    redisIvykisEvents *e = (redisIvykisEvents*)privdata;
+    redisIvykisEvents *e = (redisIvykisEvents *) privdata;
     iv_fd_set_handler_in(&e->fd, NULL);
 }
 
 static void redisIvykisAddWrite(void *privdata) {
-    redisIvykisEvents *e = (redisIvykisEvents*)privdata;
+    redisIvykisEvents *e = (redisIvykisEvents *) privdata;
     iv_fd_set_handler_out(&e->fd, redisIvykisWriteEvent);
 }
 
 static void redisIvykisDelWrite(void *privdata) {
-    redisIvykisEvents *e = (redisIvykisEvents*)privdata;
+    redisIvykisEvents *e = (redisIvykisEvents *) privdata;
     iv_fd_set_handler_out(&e->fd, NULL);
 }
 
 static void redisIvykisCleanup(void *privdata) {
-    redisIvykisEvents *e = (redisIvykisEvents*)privdata;
+    redisIvykisEvents *e = (redisIvykisEvents *) privdata;
 
     iv_fd_unregister(&e->fd);
     free(e);
@@ -55,7 +56,7 @@ static int redisIvykisAttach(redisAsyncContext *ac) {
         return REDIS_ERR;
 
     /* Create container for context and r/w events */
-    e = (redisIvykisEvents*)malloc(sizeof(*e));
+    e = (redisIvykisEvents *) malloc(sizeof(*e));
     e->context = ac;
 
     /* Register functions to start/stop listening for events */
@@ -78,4 +79,5 @@ static int redisIvykisAttach(redisAsyncContext *ac) {
 
     return REDIS_OK;
 }
+
 #endif

@@ -97,17 +97,32 @@ typedef struct sreamPropInfo {
 struct client;
 
 stream *streamNew(void);
+
 void freeStream(stream *s);
-size_t streamReplyWithRange(client *c, stream *s, streamID *start, streamID *end, size_t count, int rev, streamCG *group, streamConsumer *consumer, int flags, streamPropInfo *spi);
+
+size_t
+streamReplyWithRange(client *c, stream *s, streamID *start, streamID *end, size_t count, int rev, streamCG *group,
+                     streamConsumer *consumer, int flags, streamPropInfo *spi);
+
 void streamIteratorStart(streamIterator *si, stream *s, streamID *start, streamID *end, int rev);
+
 int streamIteratorGetID(streamIterator *si, streamID *id, int64_t *numfields);
-void streamIteratorGetField(streamIterator *si, unsigned char **fieldptr, unsigned char **valueptr, int64_t *fieldlen, int64_t *valuelen);
+
+void streamIteratorGetField(streamIterator *si, unsigned char **fieldptr, unsigned char **valueptr, int64_t *fieldlen,
+                            int64_t *valuelen);
+
 void streamIteratorStop(streamIterator *si);
+
 streamCG *streamLookupCG(stream *s, sds groupname);
+
 streamConsumer *streamLookupConsumer(streamCG *cg, sds name, int create);
+
 streamCG *streamCreateCG(stream *s, char *name, size_t namelen, streamID *id);
+
 streamNACK *streamCreateNACK(streamConsumer *consumer);
+
 void streamDecodeID(void *buf, streamID *id);
+
 int streamCompareID(streamID *a, streamID *b);
 
 #endif

@@ -104,6 +104,7 @@ quicklist *quicklistCreate(void) {
 }
 
 #define COMPRESS_MAX (1 << 16)
+
 void quicklistSetCompressDepth(quicklist *quicklist, int compress) {
     if (compress > COMPRESS_MAX) {
         compress = COMPRESS_MAX;
@@ -114,6 +115,7 @@ void quicklistSetCompressDepth(quicklist *quicklist, int compress) {
 }
 
 #define FILL_MAX (1 << 15)
+
 void quicklistSetFill(quicklist *quicklist, int fill) {
     if (fill > FILL_MAX) {
         fill = FILL_MAX;
@@ -196,7 +198,7 @@ REDIS_STATIC int __quicklistCompressNode(quicklistNode *node) {
     }
     lzf = zrealloc(lzf, sizeof(*lzf) + lzf->sz);
     zfree(node->zl);
-    node->zl = (unsigned char *)lzf;
+    node->zl = (unsigned char *) lzf;
     node->encoding = QUICKLIST_NODE_ENCODING_LZF;
     node->recompress = 0;
     return 1;
@@ -218,7 +220,7 @@ REDIS_STATIC int __quicklistDecompressNode(quicklistNode *node) {
 #endif
 
     void *decompressed = zmalloc(node->sz);
-    quicklistLZF *lzf = (quicklistLZF *)node->zl;
+    quicklistLZF *lzf = (quicklistLZF *) node->zl;
     if (lzf_decompress(lzf->compressed, lzf->sz, decompressed, node->sz) == 0) {
         /* Someone requested decompress, but we can't decompress.  Not good. */
         zfree(decompressed);
@@ -251,7 +253,7 @@ REDIS_STATIC int __quicklistDecompressNode(quicklistNode *node) {
  * Pointer to LZF data is assigned to '*data'.
  * Return value is the length of compressed LZF data. */
 size_t quicklistGetLzf(const quicklistNode *node, void **data) {
-    quicklistLZF *lzf = (quicklistLZF *)node->zl;
+    quicklistLZF *lzf = (quicklistLZF *) node->zl;
     *data = lzf->compressed;
     return lzf->sz;
 }
@@ -267,7 +269,7 @@ REDIS_STATIC void __quicklistCompress(const quicklist *quicklist,
     /* If length is less than our compress depth (from both sides),
      * we can't compress anything. */
     if (!quicklistAllowsCompression(quicklist) ||
-        quicklist->len < (unsigned int)(quicklist->compress * 2))
+        quicklist->len < (unsigned int) (quicklist->compress * 2))
         return;
 
 #if 0
@@ -443,7 +445,7 @@ REDIS_STATIC int _quicklistNodeAllowInsert(const quicklistNode *node,
         return 1;
     else if (!sizeMeetsSafetyLimit(new_sz))
         return 0;
-    else if ((int)node->count < fill)
+    else if ((int) node->count < fill)
         return 1;
     else
         return 0;
@@ -462,7 +464,7 @@ REDIS_STATIC int _quicklistNodeAllowMerge(const quicklistNode *a,
         return 1;
     else if (!sizeMeetsSafetyLimit(merge_sz))
         return 0;
-    else if ((int)(a->count + b->count) <= fill)
+    else if ((int) (a->count + b->count) <= fill)
         return 1;
     else
         return 0;
@@ -482,7 +484,7 @@ int quicklistPushHead(quicklist *quicklist, void *value, size_t sz) {
     if (likely(
             _quicklistNodeAllowInsert(quicklist->head, quicklist->fill, sz))) {
         quicklist->head->zl =
-            ziplistPush(quicklist->head->zl, value, sz, ZIPLIST_HEAD);
+                ziplistPush(quicklist->head->zl, value, sz, ZIPLIST_HEAD);
         quicklistNodeUpdateSz(quicklist->head);
     } else {
         quicklistNode *node = quicklistCreateNode();
@@ -505,7 +507,7 @@ int quicklistPushTail(quicklist *quicklist, void *value, size_t sz) {
     if (likely(
             _quicklistNodeAllowInsert(quicklist->tail, quicklist->fill, sz))) {
         quicklist->tail->zl =
-            ziplistPush(quicklist->tail->zl, value, sz, ZIPLIST_TAIL);
+                ziplistPush(quicklist->tail->zl, value, sz, ZIPLIST_TAIL);
         quicklistNodeUpdateSz(quicklist->tail);
     } else {
         quicklistNode *node = quicklistCreateNode();
@@ -551,7 +553,7 @@ quicklist *quicklistAppendValuesFromZiplist(quicklist *quicklist,
         if (!value) {
             /* Write the longval as a string so we can re-add it */
             sz = ll2string(longstr, sizeof(longstr), longval);
-            value = (unsigned char *)longstr;
+            value = (unsigned char *) longstr;
         }
         quicklistPushTail(quicklist, value, sz);
         p = ziplistNext(zl, p);
@@ -634,7 +636,7 @@ REDIS_STATIC int quicklistDelIndex(quicklist *quicklist, quicklistNode *node,
 void quicklistDelEntry(quicklistIter *iter, quicklistEntry *entry) {
     quicklistNode *prev = entry->node->prev;
     quicklistNode *next = entry->node->next;
-    int deleted_node = quicklistDelIndex((quicklist *)entry->quicklist,
+    int deleted_node = quicklistDelIndex((quicklist *) entry->quicklist,
                                          entry->node, &entry->zi);
 
     /* after delete, the zi is now invalid for any future usage. */
@@ -965,7 +967,7 @@ int quicklistDelRange(quicklist *quicklist, const long start,
     if (start >= 0 && extent > (quicklist->count - start)) {
         /* if requesting delete more elements than exist, limit to list size. */
         extent = quicklist->count - start;
-    } else if (start < 0 && extent > (unsigned long)(-start)) {
+    } else if (start < 0 && extent > (unsigned long) (-start)) {
         /* else, if at negative offset, limit max size to rest of list. */
         extent = -start; /* c.f. LREM -29 29; just delete until end. */
     }
@@ -1193,7 +1195,7 @@ quicklist *quicklistDup(quicklist *orig) {
         quicklistNode *node = quicklistCreateNode();
 
         if (current->encoding == QUICKLIST_NODE_ENCODING_LZF) {
-            quicklistLZF *lzf = (quicklistLZF *)current->zl;
+            quicklistLZF *lzf = (quicklistLZF *) current->zl;
             size_t lzf_sz = sizeof(*lzf) + lzf->sz;
             node->zl = zmalloc(lzf_sz);
             memcpy(node->zl, current->zl, lzf_sz);
@@ -1247,7 +1249,7 @@ int quicklistIndex(const quicklist *quicklist, const long long idx,
         if ((accum + n->count) > index) {
             break;
         } else {
-            D("Skipping over (%p) %u at accum %lld", (void *)n, n->count,
+            D("Skipping over (%p) %u at accum %lld", (void *) n, n->count,
               accum);
             accum += n->count;
             n = forward ? n->next : n->prev;
@@ -1257,7 +1259,7 @@ int quicklistIndex(const quicklist *quicklist, const long long idx,
     if (!n)
         return 0;
 
-    D("Found node: %p at accum %llu, idx %llu, sub+ %llu, sub- %llu", (void *)n,
+    D("Found node: %p at accum %llu, idx %llu, sub+ %llu, sub- %llu", (void *) n,
       accum, index, index - accum, (-index) - 1 + accum);
 
     entry->node = n;
@@ -1295,7 +1297,7 @@ void quicklistRotate(quicklist *quicklist) {
     if (!value) {
         /* Write the longval as a string so we can re-add it */
         sz = ll2string(longstr, sizeof(longstr), longval);
-        value = (unsigned char *)longstr;
+        value = (unsigned char *) longstr;
     }
 
     /* Add tail entry to head (must happen before tail is deleted). */

@@ -41,9 +41,9 @@ void lolwut5Command(client *c);
  * This is what unstable versions of Redis will display. */
 void lolwutUnstableCommand(client *c) {
     sds rendered = sdsnew("Redis ver. ");
-    rendered = sdscat(rendered,REDIS_VERSION);
-    rendered = sdscatlen(rendered,"\n",1);
-    addReplyBulkSds(c,rendered);
+    rendered = sdscat(rendered, REDIS_VERSION);
+    rendered = sdscatlen(rendered, "\n", 1);
+    addReplyBulkSds(c, rendered);
 }
 
 void lolwutCommand(client *c) {

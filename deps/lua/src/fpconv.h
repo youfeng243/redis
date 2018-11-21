@@ -12,11 +12,14 @@ static inline void fpconv_init()
     /* Do nothing - not required */
 }
 #else
+
 extern void fpconv_init();
+
 #endif
 
-extern int fpconv_g_fmt(char*, double, int);
-extern double fpconv_strtod(const char*, char**);
+extern int fpconv_g_fmt(char *, double, int);
+
+extern double fpconv_strtod(const char *, char **);
 
 /* vi:ai et sw=4 ts=4:
  */

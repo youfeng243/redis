@@ -118,7 +118,7 @@ typedef struct clusterNode {
     char name[CLUSTER_NAMELEN]; /* Node name, hex string, sha1-size */
     int flags;      /* CLUSTER_NODE_... */
     uint64_t configEpoch; /* Last configEpoch observed for this node */
-    unsigned char slots[CLUSTER_SLOTS/8]; /* slots handled by this node */
+    unsigned char slots[CLUSTER_SLOTS / 8]; /* slots handled by this node */
     int numslots;   /* Number of slots handled by this node */
     int numslaves;  /* Number of slave nodes, if this is a master */
     struct clusterNode **slaves; /* pointers to slave nodes */
@@ -209,7 +209,7 @@ typedef struct {
 typedef struct {
     uint64_t configEpoch; /* Config epoch of the specified instance. */
     char nodename[CLUSTER_NAMELEN]; /* Name of the slots owner. */
-    unsigned char slots[CLUSTER_SLOTS/8]; /* Slots bitmap. */
+    unsigned char slots[CLUSTER_SLOTS / 8]; /* Slots bitmap. */
 } clusterMsgDataUpdate;
 
 typedef struct {
@@ -263,7 +263,7 @@ typedef struct {
     uint64_t offset;    /* Master replication offset if node is a master or
                            processed replication offset if node is a slave. */
     char sender[CLUSTER_NAMELEN]; /* Name of the sender node */
-    unsigned char myslots[CLUSTER_SLOTS/8];
+    unsigned char myslots[CLUSTER_SLOTS / 8];
     char slaveof[CLUSTER_NAMELEN];
     char myip[NET_IP_STR_LEN];    /* Sender IP, if not all zeroed. */
     char notused1[34];  /* 34 bytes reserved for future usage. */
@@ -284,7 +284,9 @@ typedef struct {
 
 /* ---------------------- API exported outside cluster.c -------------------- */
 clusterNode *getNodeByQuery(client *c, struct redisCommand *cmd, robj **argv, int argc, int *hashslot, int *ask);
+
 int clusterRedirectBlockedClientIfNeeded(client *c);
+
 void clusterRedirectClient(client *c, clusterNode *n, int hashslot, int error_code);
 
 #endif /* __CLUSTER_H */

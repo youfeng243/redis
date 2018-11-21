@@ -69,23 +69,34 @@
 typedef struct sfmt_s sfmt_t;
 
 uint32_t gen_rand32(sfmt_t *ctx);
+
 uint32_t gen_rand32_range(sfmt_t *ctx, uint32_t limit);
+
 uint64_t gen_rand64(sfmt_t *ctx);
+
 uint64_t gen_rand64_range(sfmt_t *ctx, uint64_t limit);
+
 void fill_array32(sfmt_t *ctx, uint32_t *array, int size);
+
 void fill_array64(sfmt_t *ctx, uint64_t *array, int size);
+
 sfmt_t *init_gen_rand(uint32_t seed);
+
 sfmt_t *init_by_array(uint32_t *init_key, int key_length);
+
 void fini_gen_rand(sfmt_t *ctx);
+
 const char *get_idstring(void);
+
 int get_min_array_size32(void);
+
 int get_min_array_size64(void);
 
 /* These real versions are due to Isaku Wada */
 /** generates a random number on [0,1]-real-interval */
 static inline double to_real1(uint32_t v) {
-    return v * (1.0/4294967295.0); 
-    /* divided by 2^32-1 */ 
+    return v * (1.0 / 4294967295.0);
+    /* divided by 2^32-1 */
 }
 
 /** generates a random number on [0,1]-real-interval */
@@ -95,7 +106,7 @@ static inline double genrand_real1(sfmt_t *ctx) {
 
 /** generates a random number on [0,1)-real-interval */
 static inline double to_real2(uint32_t v) {
-    return v * (1.0/4294967296.0); 
+    return v * (1.0 / 4294967296.0);
     /* divided by 2^32 */
 }
 
@@ -106,7 +117,7 @@ static inline double genrand_real2(sfmt_t *ctx) {
 
 /** generates a random number on (0,1)-real-interval */
 static inline double to_real3(uint32_t v) {
-    return (((double)v) + 0.5)*(1.0/4294967296.0); 
+    return (((double) v) + 0.5) * (1.0 / 4294967296.0);
     /* divided by 2^32 */
 }
 
@@ -118,13 +129,13 @@ static inline double genrand_real3(sfmt_t *ctx) {
 
 /** generates a random number on [0,1) with 53-bit resolution*/
 static inline double to_res53(uint64_t v) {
-    return v * (1.0/18446744073709551616.0L);
+    return v * (1.0 / 18446744073709551616.0L);
 }
 
 /** generates a random number on [0,1) with 53-bit resolution from two
  * 32 bit integers */
 static inline double to_res53_mix(uint32_t x, uint32_t y) {
-    return to_res53(x | ((uint64_t)y << 32));
+    return to_res53(x | ((uint64_t) y << 32));
 }
 
 /** generates a random number on [0,1) with 53-bit resolution
@@ -143,4 +154,5 @@ static inline double genrand_res53_mix(sfmt_t *ctx) {
     y = gen_rand32(ctx);
     return to_res53_mix(x, y);
 }
+
 #endif

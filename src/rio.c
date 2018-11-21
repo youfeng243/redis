@@ -59,16 +59,16 @@
 
 /* Returns 1 or 0 for success/failure. */
 static size_t rioBufferWrite(rio *r, const void *buf, size_t len) {
-    r->io.buffer.ptr = sdscatlen(r->io.buffer.ptr,(char*)buf,len);
+    r->io.buffer.ptr = sdscatlen(r->io.buffer.ptr, (char *) buf, len);
     r->io.buffer.pos += len;
     return 1;
 }
 
 /* Returns 1 or 0 for success/failure. */
 static size_t rioBufferRead(rio *r, void *buf, size_t len) {
-    if (sdslen(r->io.buffer.ptr)-r->io.buffer.pos < len)
+    if (sdslen(r->io.buffer.ptr) - r->io.buffer.pos < len)
         return 0; /* not enough buffer to return len bytes. */
-    memcpy(buf,r->io.buffer.ptr+r->io.buffer.pos,len);
+    memcpy(buf, r->io.buffer.ptr + r->io.buffer.pos, len);
     r->io.buffer.pos += len;
     return 1;
 }
@@ -86,15 +86,15 @@ static int rioBufferFlush(rio *r) {
 }
 
 static const rio rioBufferIO = {
-    rioBufferRead,
-    rioBufferWrite,
-    rioBufferTell,
-    rioBufferFlush,
-    NULL,           /* update_checksum */
-    0,              /* current checksum */
-    0,              /* bytes read or written */
-    0,              /* read/write chunk size */
-    { { NULL, 0 } } /* union for io-specific vars */
+        rioBufferRead,
+        rioBufferWrite,
+        rioBufferTell,
+        rioBufferFlush,
+        NULL,           /* update_checksum */
+        0,              /* current checksum */
+        0,              /* bytes read or written */
+        0,              /* read/write chunk size */
+        {{NULL, 0}} /* union for io-specific vars */
 };
 
 void rioInitWithBuffer(rio *r, sds s) {
@@ -109,12 +109,11 @@ void rioInitWithBuffer(rio *r, sds s) {
 static size_t rioFileWrite(rio *r, const void *buf, size_t len) {
     size_t retval;
 
-    retval = fwrite(buf,len,1,r->io.file.fp);
+    retval = fwrite(buf, len, 1, r->io.file.fp);
     r->io.file.buffered += len;
 
     if (r->io.file.autosync &&
-        r->io.file.buffered >= r->io.file.autosync)
-    {
+        r->io.file.buffered >= r->io.file.autosync) {
         fflush(r->io.file.fp);
         redis_fsync(fileno(r->io.file.fp));
         r->io.file.buffered = 0;
@@ -124,7 +123,7 @@ static size_t rioFileWrite(rio *r, const void *buf, size_t len) {
 
 /* Returns 1 or 0 for success/failure. */
 static size_t rioFileRead(rio *r, void *buf, size_t len) {
-    return fread(buf,len,1,r->io.file.fp);
+    return fread(buf, len, 1, r->io.file.fp);
 }
 
 /* Returns read/write position in file. */
@@ -139,15 +138,15 @@ static int rioFileFlush(rio *r) {
 }
 
 static const rio rioFileIO = {
-    rioFileRead,
-    rioFileWrite,
-    rioFileTell,
-    rioFileFlush,
-    NULL,           /* update_checksum */
-    0,              /* current checksum */
-    0,              /* bytes read or written */
-    0,              /* read/write chunk size */
-    { { NULL, 0 } } /* union for io-specific vars */
+        rioFileRead,
+        rioFileWrite,
+        rioFileTell,
+        rioFileFlush,
+        NULL,           /* update_checksum */
+        0,              /* current checksum */
+        0,              /* bytes read or written */
+        0,              /* read/write chunk size */
+        {{NULL, 0}} /* union for io-specific vars */
 };
 
 void rioInitWithFile(rio *r, FILE *fp) {
@@ -169,26 +168,26 @@ void rioInitWithFile(rio *r, FILE *fp) {
 static size_t rioFdsetWrite(rio *r, const void *buf, size_t len) {
     ssize_t retval;
     int j;
-    unsigned char *p = (unsigned char*) buf;
+    unsigned char *p = (unsigned char *) buf;
     int doflush = (buf == NULL && len == 0);
 
     /* To start we always append to our buffer. If it gets larger than
      * a given size, we actually write to the sockets. */
     if (len) {
-        r->io.fdset.buf = sdscatlen(r->io.fdset.buf,buf,len);
+        r->io.fdset.buf = sdscatlen(r->io.fdset.buf, buf, len);
         len = 0; /* Prevent entering the while below if we don't flush. */
         if (sdslen(r->io.fdset.buf) > PROTO_IOBUF_LEN) doflush = 1;
     }
 
     if (doflush) {
-        p = (unsigned char*) r->io.fdset.buf;
+        p = (unsigned char *) r->io.fdset.buf;
         len = sdslen(r->io.fdset.buf);
     }
 
     /* Write in little chunchs so that when there are big writes we
      * parallelize while the kernel is sending data in background to
      * the TCP socket. */
-    while(len) {
+    while (len) {
         size_t count = len < 1024 ? len : 1024;
         int broken = 0;
         for (j = 0; j < r->io.fdset.numfds; j++) {
@@ -201,8 +200,8 @@ static size_t rioFdsetWrite(rio *r, const void *buf, size_t len) {
             /* Make sure to write 'count' bytes to the socket regardless
              * of short writes. */
             size_t nwritten = 0;
-            while(nwritten != count) {
-                retval = write(r->io.fdset.fds[j],p+nwritten,count-nwritten);
+            while (nwritten != count) {
+                retval = write(r->io.fdset.fds[j], p + nwritten, count - nwritten);
                 if (retval <= 0) {
                     /* With blocking sockets, which is the sole user of this
                      * rio target, EWOULDBLOCK is returned only because of
@@ -248,28 +247,28 @@ static off_t rioFdsetTell(rio *r) {
 static int rioFdsetFlush(rio *r) {
     /* Our flush is implemented by the write method, that recognizes a
      * buffer set to NULL with a count of zero as a flush request. */
-    return rioFdsetWrite(r,NULL,0);
+    return rioFdsetWrite(r, NULL, 0);
 }
 
 static const rio rioFdsetIO = {
-    rioFdsetRead,
-    rioFdsetWrite,
-    rioFdsetTell,
-    rioFdsetFlush,
-    NULL,           /* update_checksum */
-    0,              /* current checksum */
-    0,              /* bytes read or written */
-    0,              /* read/write chunk size */
-    { { NULL, 0 } } /* union for io-specific vars */
+        rioFdsetRead,
+        rioFdsetWrite,
+        rioFdsetTell,
+        rioFdsetFlush,
+        NULL,           /* update_checksum */
+        0,              /* current checksum */
+        0,              /* bytes read or written */
+        0,              /* read/write chunk size */
+        {{NULL, 0}} /* union for io-specific vars */
 };
 
 void rioInitWithFdset(rio *r, int *fds, int numfds) {
     int j;
 
     *r = rioFdsetIO;
-    r->io.fdset.fds = zmalloc(sizeof(int)*numfds);
-    r->io.fdset.state = zmalloc(sizeof(int)*numfds);
-    memcpy(r->io.fdset.fds,fds,sizeof(int)*numfds);
+    r->io.fdset.fds = zmalloc(sizeof(int) * numfds);
+    r->io.fdset.state = zmalloc(sizeof(int) * numfds);
+    memcpy(r->io.fdset.fds, fds, sizeof(int) * numfds);
     for (j = 0; j < numfds; j++) r->io.fdset.state[j] = 0;
     r->io.fdset.numfds = numfds;
     r->io.fdset.pos = 0;
@@ -288,7 +287,7 @@ void rioFreeFdset(rio *r) {
 /* This function can be installed both in memory and file streams when checksum
  * computation is needed. */
 void rioGenericUpdateChecksum(rio *r, const void *buf, size_t len) {
-    r->cksum = crc64(r->cksum,buf,len);
+    r->cksum = crc64(r->cksum, buf, len);
 }
 
 /* Set the file-based rio object to auto-fsync every 'bytes' file written.
@@ -315,10 +314,10 @@ size_t rioWriteBulkCount(rio *r, char prefix, long count) {
     int clen;
 
     cbuf[0] = prefix;
-    clen = 1+ll2string(cbuf+1,sizeof(cbuf)-1,count);
+    clen = 1 + ll2string(cbuf + 1, sizeof(cbuf) - 1, count);
     cbuf[clen++] = '\r';
     cbuf[clen++] = '\n';
-    if (rioWrite(r,cbuf,clen) == 0) return 0;
+    if (rioWrite(r, cbuf, clen) == 0) return 0;
     return clen;
 }
 
@@ -326,10 +325,10 @@ size_t rioWriteBulkCount(rio *r, char prefix, long count) {
 size_t rioWriteBulkString(rio *r, const char *buf, size_t len) {
     size_t nwritten;
 
-    if ((nwritten = rioWriteBulkCount(r,'$',len)) == 0) return 0;
-    if (len > 0 && rioWrite(r,buf,len) == 0) return 0;
-    if (rioWrite(r,"\r\n",2) == 0) return 0;
-    return nwritten+len+2;
+    if ((nwritten = rioWriteBulkCount(r, '$', len)) == 0) return 0;
+    if (len > 0 && rioWrite(r, buf, len) == 0) return 0;
+    if (rioWrite(r, "\r\n", 2) == 0) return 0;
+    return nwritten + len + 2;
 }
 
 /* Write a long long value in format: "$<count>\r\n<payload>\r\n". */
@@ -337,8 +336,8 @@ size_t rioWriteBulkLongLong(rio *r, long long l) {
     char lbuf[32];
     unsigned int llen;
 
-    llen = ll2string(lbuf,sizeof(lbuf),l);
-    return rioWriteBulkString(r,lbuf,llen);
+    llen = ll2string(lbuf, sizeof(lbuf), l);
+    return rioWriteBulkString(r, lbuf, llen);
 }
 
 /* Write a double value in the format: "$<count>\r\n<payload>\r\n" */
@@ -346,6 +345,6 @@ size_t rioWriteBulkDouble(rio *r, double d) {
     char dbuf[128];
     unsigned int dlen;
 
-    dlen = snprintf(dbuf,sizeof(dbuf),"%.17g",d);
-    return rioWriteBulkString(r,dbuf,dlen);
+    dlen = snprintf(dbuf, sizeof(dbuf), "%.17g", d);
+    return rioWriteBulkString(r, dbuf, dlen);
 }
