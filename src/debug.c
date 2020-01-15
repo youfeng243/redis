@@ -63,8 +63,8 @@ void xorDigest(unsigned char *digest, void *ptr, size_t len) {
     int j;
 
     SHA1Init(&ctx);
-    SHA1Update(&ctx,s,len);
-    SHA1Final(hash,&ctx);
+    SHA1Update(&ctx, s, len);
+    SHA1Final(hash, &ctx);
 
     for (j = 0; j < 20; j++)
         digest[j] ^= hash[j];
@@ -72,7 +72,7 @@ void xorDigest(unsigned char *digest, void *ptr, size_t len) {
 
 void xorObjectDigest(unsigned char *digest, robj *o) {
     o = getDecodedObject(o);
-    xorDigest(digest,o->ptr,sdslen(o->ptr));
+    xorDigest(digest, o->ptr, sdslen(o->ptr));
     decrRefCount(o);
 }
 
@@ -94,15 +94,15 @@ void mixDigest(unsigned char *digest, void *ptr, size_t len) {
     SHA1_CTX ctx;
     char *s = ptr;
 
-    xorDigest(digest,s,len);
+    xorDigest(digest, s, len);
     SHA1Init(&ctx);
-    SHA1Update(&ctx,digest,20);
-    SHA1Final(digest,&ctx);
+    SHA1Update(&ctx, digest, 20);
+    SHA1Final(digest, &ctx);
 }
 
 void mixObjectDigest(unsigned char *digest, robj *o) {
     o = getDecodedObject(o);
-    mixDigest(digest,o->ptr,sdslen(o->ptr));
+    mixDigest(digest, o->ptr, sdslen(o->ptr));
     decrRefCount(o);
 }
 
@@ -120,10 +120,10 @@ void computeDatasetDigest(unsigned char *final) {
     int j;
     uint32_t aux;
 
-    memset(final,0,20); /* Start with a clean result */
+    memset(final, 0, 20); /* Start with a clean result */
 
     for (j = 0; j < server.dbnum; j++) {
-        redisDb *db = server.db+j;
+        redisDb *db = server.db + j;
 
         if (dictSize(db->dict) == 0) continue;
         di = dictGetSafeIterator(db->dict);
@@ -131,43 +131,43 @@ void computeDatasetDigest(unsigned char *final) {
         /* hash the DB id, so the same dataset moved in a different
          * DB will lead to a different digest */
         aux = htonl(j);
-        mixDigest(final,&aux,sizeof(aux));
+        mixDigest(final, &aux, sizeof(aux));
 
         /* Iterate this DB writing every entry */
-        while((de = dictNext(di)) != NULL) {
+        while ((de = dictNext(di)) != NULL) {
             sds key;
             robj *keyobj, *o;
             long long expiretime;
 
-            memset(digest,0,20); /* This key-val digest */
+            memset(digest, 0, 20); /* This key-val digest */
             key = dictGetKey(de);
-            keyobj = createStringObject(key,sdslen(key));
+            keyobj = createStringObject(key, sdslen(key));
 
-            mixDigest(digest,key,sdslen(key));
+            mixDigest(digest, key, sdslen(key));
 
             o = dictGetVal(de);
 
             aux = htonl(o->type);
-            mixDigest(digest,&aux,sizeof(aux));
-            expiretime = getExpire(db,keyobj);
+            mixDigest(digest, &aux, sizeof(aux));
+            expiretime = getExpire(db, keyobj);
 
             /* Save the key and associated value */
             if (o->type == OBJ_STRING) {
-                mixObjectDigest(digest,o);
+                mixObjectDigest(digest, o);
             } else if (o->type == OBJ_LIST) {
-                listTypeIterator *li = listTypeInitIterator(o,0,LIST_TAIL);
+                listTypeIterator *li = listTypeInitIterator(o, 0, LIST_TAIL);
                 listTypeEntry entry;
-                while(listTypeNext(li,&entry)) {
+                while (listTypeNext(li, &entry)) {
                     robj *eleobj = listTypeGet(&entry);
-                    mixObjectDigest(digest,eleobj);
+                    mixObjectDigest(digest, eleobj);
                     decrRefCount(eleobj);
                 }
                 listTypeReleaseIterator(li);
             } else if (o->type == OBJ_SET) {
                 setTypeIterator *si = setTypeInitIterator(o);
                 sds sdsele;
-                while((sdsele = setTypeNextObject(si)) != NULL) {
-                    xorDigest(digest,sdsele,sdslen(sdsele));
+                while ((sdsele = setTypeNextObject(si)) != NULL) {
+                    xorDigest(digest, sdsele, sdslen(sdsele));
                     sdsfree(sdsele);
                 }
                 setTypeReleaseIterator(si);
@@ -182,42 +182,42 @@ void computeDatasetDigest(unsigned char *final) {
                     long long vll;
                     double score;
 
-                    eptr = ziplistIndex(zl,0);
+                    eptr = ziplistIndex(zl, 0);
                     serverAssert(eptr != NULL);
-                    sptr = ziplistNext(zl,eptr);
+                    sptr = ziplistNext(zl, eptr);
                     serverAssert(sptr != NULL);
 
                     while (eptr != NULL) {
-                        serverAssert(ziplistGet(eptr,&vstr,&vlen,&vll));
+                        serverAssert(ziplistGet(eptr, &vstr, &vlen, &vll));
                         score = zzlGetScore(sptr);
 
-                        memset(eledigest,0,20);
+                        memset(eledigest, 0, 20);
                         if (vstr != NULL) {
-                            mixDigest(eledigest,vstr,vlen);
+                            mixDigest(eledigest, vstr, vlen);
                         } else {
-                            ll2string(buf,sizeof(buf),vll);
-                            mixDigest(eledigest,buf,strlen(buf));
+                            ll2string(buf, sizeof(buf), vll);
+                            mixDigest(eledigest, buf, strlen(buf));
                         }
 
-                        snprintf(buf,sizeof(buf),"%.17g",score);
-                        mixDigest(eledigest,buf,strlen(buf));
-                        xorDigest(digest,eledigest,20);
-                        zzlNext(zl,&eptr,&sptr);
+                        snprintf(buf, sizeof(buf), "%.17g", score);
+                        mixDigest(eledigest, buf, strlen(buf));
+                        xorDigest(digest, eledigest, 20);
+                        zzlNext(zl, &eptr, &sptr);
                     }
                 } else if (o->encoding == OBJ_ENCODING_SKIPLIST) {
                     zset *zs = o->ptr;
                     dictIterator *di = dictGetIterator(zs->dict);
                     dictEntry *de;
 
-                    while((de = dictNext(di)) != NULL) {
+                    while ((de = dictNext(di)) != NULL) {
                         sds sdsele = dictGetKey(de);
                         double *score = dictGetVal(de);
 
-                        snprintf(buf,sizeof(buf),"%.17g",*score);
-                        memset(eledigest,0,20);
-                        mixDigest(eledigest,sdsele,sdslen(sdsele));
-                        mixDigest(eledigest,buf,strlen(buf));
-                        xorDigest(digest,eledigest,20);
+                        snprintf(buf, sizeof(buf), "%.17g", *score);
+                        memset(eledigest, 0, 20);
+                        mixDigest(eledigest, sdsele, sdslen(sdsele));
+                        mixDigest(eledigest, buf, strlen(buf));
+                        xorDigest(digest, eledigest, 20);
                     }
                     dictReleaseIterator(di);
                 } else {
@@ -229,14 +229,14 @@ void computeDatasetDigest(unsigned char *final) {
                     unsigned char eledigest[20];
                     sds sdsele;
 
-                    memset(eledigest,0,20);
-                    sdsele = hashTypeCurrentObjectNewSds(hi,OBJ_HASH_KEY);
-                    mixDigest(eledigest,sdsele,sdslen(sdsele));
+                    memset(eledigest, 0, 20);
+                    sdsele = hashTypeCurrentObjectNewSds(hi, OBJ_HASH_KEY);
+                    mixDigest(eledigest, sdsele, sdslen(sdsele));
                     sdsfree(sdsele);
-                    sdsele = hashTypeCurrentObjectNewSds(hi,OBJ_HASH_VALUE);
-                    mixDigest(eledigest,sdsele,sdslen(sdsele));
+                    sdsele = hashTypeCurrentObjectNewSds(hi, OBJ_HASH_VALUE);
+                    mixDigest(eledigest, sdsele, sdslen(sdsele));
                     sdsfree(sdsele);
-                    xorDigest(digest,eledigest,20);
+                    xorDigest(digest, eledigest, 20);
                 }
                 hashTypeReleaseIterator(hi);
             } else if (o->type == OBJ_MODULE) {
@@ -245,16 +245,16 @@ void computeDatasetDigest(unsigned char *final) {
                 moduleType *mt = mv->type;
                 moduleInitDigestContext(md);
                 if (mt->digest) {
-                    mt->digest(&md,mv->value);
-                    xorDigest(digest,md.x,sizeof(md.x));
+                    mt->digest(&md, mv->value);
+                    xorDigest(digest, md.x, sizeof(md.x));
                 }
             } else {
                 serverPanic("Unknown object type");
             }
             /* If the key has an expire, add it to the mix */
-            if (expiretime != -1) xorDigest(digest,"!!expire!!",10);
+            if (expiretime != -1) xorDigest(digest, "!!expire!!", 10);
             /* We can finally xor the key-val digest to the final digest */
-            xorDigest(final,digest,20);
+            xorDigest(final, digest, 20);
             decrRefCount(keyobj);
         }
         dictReleaseIterator(di);
@@ -263,110 +263,130 @@ void computeDatasetDigest(unsigned char *final) {
 
 void debugCommand(client *c) {
     if (c->argc == 1) {
-        addReplyError(c,"You must specify a subcommand for DEBUG. Try DEBUG HELP for info.");
+        addReplyError(c, "You must specify a subcommand for DEBUG. Try DEBUG HELP for info.");
         return;
     }
 
-    if (!strcasecmp(c->argv[1]->ptr,"help")) {
+    if (!strcasecmp(c->argv[1]->ptr, "help")) {
         void *blenp = addDeferredMultiBulkLength(c);
         int blen = 0;
-        blen++; addReplyStatus(c,
-        "DEBUG <subcommand> arg arg ... arg. Subcommands:");
-        blen++; addReplyStatus(c,
-        "segfault -- Crash the server with sigsegv.");
-        blen++; addReplyStatus(c,
-        "panic -- Crash the server simulating a panic.");
-        blen++; addReplyStatus(c,
-        "restart  -- Graceful restart: save config, db, restart.");
-        blen++; addReplyStatus(c,
-        "crash-and-recovery <milliseconds> -- Hard crash and restart after <milliseconds> delay.");
-        blen++; addReplyStatus(c,
-        "assert   -- Crash by assertion failed.");
-        blen++; addReplyStatus(c,
-        "reload   -- Save the RDB on disk and reload it back in memory.");
-        blen++; addReplyStatus(c,
-        "loadaof  -- Flush the AOF buffers on disk and reload the AOF in memory.");
-        blen++; addReplyStatus(c,
-        "object <key> -- Show low level info about key and associated value.");
-        blen++; addReplyStatus(c,
-        "sdslen <key> -- Show low level SDS string info representing key and value.");
-        blen++; addReplyStatus(c,
-        "ziplist <key> -- Show low level info about the ziplist encoding.");
-        blen++; addReplyStatus(c,
-        "populate <count> [prefix] [size] -- Create <count> string keys named key:<num>. If a prefix is specified is used instead of the 'key' prefix.");
-        blen++; addReplyStatus(c,
-        "digest   -- Outputs an hex signature representing the current DB content.");
-        blen++; addReplyStatus(c,
-        "sleep <seconds> -- Stop the server for <seconds>. Decimals allowed.");
-        blen++; addReplyStatus(c,
-        "set-active-expire (0|1) -- Setting it to 0 disables expiring keys in background when they are not accessed (otherwise the Redis behavior). Setting it to 1 reenables back the default.");
-        blen++; addReplyStatus(c,
-        "lua-always-replicate-commands (0|1) -- Setting it to 1 makes Lua replication defaulting to replicating single commands, without the script having to enable effects replication.");
-        blen++; addReplyStatus(c,
-        "error <string> -- Return a Redis protocol error with <string> as message. Useful for clients unit tests to simulate Redis errors.");
-        blen++; addReplyStatus(c,
-        "structsize -- Return the size of different Redis core C structures.");
-        blen++; addReplyStatus(c,
-        "htstats <dbid> -- Return hash table statistics of the specified Redis database.");
-        blen++; addReplyStatus(c,
-        "change-repl-id -- Change the replication IDs of the instance. Dangerous, should be used only for testing the replication subsystem.");
-        setDeferredMultiBulkLength(c,blenp,blen);
-    } else if (!strcasecmp(c->argv[1]->ptr,"segfault")) {
-        *((char*)-1) = 'x';
-    } else if (!strcasecmp(c->argv[1]->ptr,"panic")) {
+        blen++;
+        addReplyStatus(c,
+                       "DEBUG <subcommand> arg arg ... arg. Subcommands:");
+        blen++;
+        addReplyStatus(c,
+                       "segfault -- Crash the server with sigsegv.");
+        blen++;
+        addReplyStatus(c,
+                       "panic -- Crash the server simulating a panic.");
+        blen++;
+        addReplyStatus(c,
+                       "restart  -- Graceful restart: save config, db, restart.");
+        blen++;
+        addReplyStatus(c,
+                       "crash-and-recovery <milliseconds> -- Hard crash and restart after <milliseconds> delay.");
+        blen++;
+        addReplyStatus(c,
+                       "assert   -- Crash by assertion failed.");
+        blen++;
+        addReplyStatus(c,
+                       "reload   -- Save the RDB on disk and reload it back in memory.");
+        blen++;
+        addReplyStatus(c,
+                       "loadaof  -- Flush the AOF buffers on disk and reload the AOF in memory.");
+        blen++;
+        addReplyStatus(c,
+                       "object <key> -- Show low level info about key and associated value.");
+        blen++;
+        addReplyStatus(c,
+                       "sdslen <key> -- Show low level SDS string info representing key and value.");
+        blen++;
+        addReplyStatus(c,
+                       "ziplist <key> -- Show low level info about the ziplist encoding.");
+        blen++;
+        addReplyStatus(c,
+                       "populate <count> [prefix] [size] -- Create <count> string keys named key:<num>. If a prefix is specified is used instead of the 'key' prefix.");
+        blen++;
+        addReplyStatus(c,
+                       "digest   -- Outputs an hex signature representing the current DB content.");
+        blen++;
+        addReplyStatus(c,
+                       "sleep <seconds> -- Stop the server for <seconds>. Decimals allowed.");
+        blen++;
+        addReplyStatus(c,
+                       "set-active-expire (0|1) -- Setting it to 0 disables expiring keys in background when they are not accessed (otherwise the Redis behavior). Setting it to 1 reenables back the default.");
+        blen++;
+        addReplyStatus(c,
+                       "lua-always-replicate-commands (0|1) -- Setting it to 1 makes Lua replication defaulting to replicating single commands, without the script having to enable effects replication.");
+        blen++;
+        addReplyStatus(c,
+                       "error <string> -- Return a Redis protocol error with <string> as message. Useful for clients unit tests to simulate Redis errors.");
+        blen++;
+        addReplyStatus(c,
+                       "structsize -- Return the size of different Redis core C structures.");
+        blen++;
+        addReplyStatus(c,
+                       "htstats <dbid> -- Return hash table statistics of the specified Redis database.");
+        blen++;
+        addReplyStatus(c,
+                       "change-repl-id -- Change the replication IDs of the instance. Dangerous, should be used only for testing the replication subsystem.");
+        setDeferredMultiBulkLength(c, blenp, blen);
+    } else if (!strcasecmp(c->argv[1]->ptr, "segfault")) {
+        *((char *) -1) = 'x';
+    } else if (!strcasecmp(c->argv[1]->ptr, "panic")) {
         serverPanic("DEBUG PANIC called at Unix time %ld", time(NULL));
-    } else if (!strcasecmp(c->argv[1]->ptr,"restart") ||
-               !strcasecmp(c->argv[1]->ptr,"crash-and-recover"))
-    {
+    } else if (!strcasecmp(c->argv[1]->ptr, "restart") ||
+               !strcasecmp(c->argv[1]->ptr, "crash-and-recover")) {
         long long delay = 0;
         if (c->argc >= 3) {
             if (getLongLongFromObjectOrReply(c, c->argv[2], &delay, NULL)
-                != C_OK) return;
+                != C_OK)
+                return;
             if (delay < 0) delay = 0;
         }
-        int flags = !strcasecmp(c->argv[1]->ptr,"restart") ?
-            (RESTART_SERVER_GRACEFULLY|RESTART_SERVER_CONFIG_REWRITE) :
-             RESTART_SERVER_NONE;
-        restartServer(flags,delay);
-        addReplyError(c,"failed to restart the server. Check server logs.");
-    } else if (!strcasecmp(c->argv[1]->ptr,"oom")) {
+        int flags = !strcasecmp(c->argv[1]->ptr, "restart") ?
+                    (RESTART_SERVER_GRACEFULLY | RESTART_SERVER_CONFIG_REWRITE) :
+                    RESTART_SERVER_NONE;
+        restartServer(flags, delay);
+        addReplyError(c, "failed to restart the server. Check server logs.");
+    } else if (!strcasecmp(c->argv[1]->ptr, "oom")) {
         void *ptr = zmalloc(ULONG_MAX); /* Should trigger an out of memory. */
         zfree(ptr);
-        addReply(c,shared.ok);
-    } else if (!strcasecmp(c->argv[1]->ptr,"assert")) {
+        addReply(c, shared.ok);
+    } else if (!strcasecmp(c->argv[1]->ptr, "assert")) {
         if (c->argc >= 3) c->argv[2] = tryObjectEncoding(c->argv[2]);
-        serverAssertWithInfo(c,c->argv[0],1 == 2);
-    } else if (!strcasecmp(c->argv[1]->ptr,"reload")) {
+        serverAssertWithInfo(c, c->argv[0], 1 == 2);
+    } else if (!strcasecmp(c->argv[1]->ptr, "reload")) {
         rdbSaveInfo rsi, *rsiptr;
         rsiptr = rdbPopulateSaveInfo(&rsi);
-        if (rdbSave(server.rdb_filename,rsiptr) != C_OK) {
-            addReply(c,shared.err);
+        if (rdbSave(server.rdb_filename, rsiptr) != C_OK) {
+            addReply(c, shared.err);
             return;
         }
-        emptyDb(-1,EMPTYDB_NO_FLAGS,NULL);
-        if (rdbLoad(server.rdb_filename,NULL) != C_OK) {
-            addReplyError(c,"Error trying to load the RDB dump");
+        emptyDb(-1, EMPTYDB_NO_FLAGS, NULL);
+        if (rdbLoad(server.rdb_filename, NULL) != C_OK) {
+            addReplyError(c, "Error trying to load the RDB dump");
             return;
         }
-        serverLog(LL_WARNING,"DB reloaded by DEBUG RELOAD");
-        addReply(c,shared.ok);
-    } else if (!strcasecmp(c->argv[1]->ptr,"loadaof")) {
+        serverLog(LL_WARNING, "DB reloaded by DEBUG RELOAD");
+        addReply(c, shared.ok);
+    } else if (!strcasecmp(c->argv[1]->ptr, "loadaof")) {
         if (server.aof_state == AOF_ON) flushAppendOnlyFile(1);
-        emptyDb(-1,EMPTYDB_NO_FLAGS,NULL);
+        emptyDb(-1, EMPTYDB_NO_FLAGS, NULL);
         if (loadAppendOnlyFile(server.aof_filename) != C_OK) {
-            addReply(c,shared.err);
+            addReply(c, shared.err);
             return;
         }
         server.dirty = 0; /* Prevent AOF / replication */
-        serverLog(LL_WARNING,"Append Only File loaded by DEBUG LOADAOF");
-        addReply(c,shared.ok);
-    } else if (!strcasecmp(c->argv[1]->ptr,"object") && c->argc == 3) {
+        serverLog(LL_WARNING, "Append Only File loaded by DEBUG LOADAOF");
+        addReply(c, shared.ok);
+    } else if (!strcasecmp(c->argv[1]->ptr, "object") && c->argc == 3) {
         dictEntry *de;
         robj *val;
         char *strenc;
 
-        if ((de = dictFind(c->db->dict,c->argv[2]->ptr)) == NULL) {
-            addReply(c,shared.nokeyerr);
+        if ((de = dictFind(c->db->dict, c->argv[2]->ptr)) == NULL) {
+            addReply(c, shared.nokeyerr);
             return;
         }
         val = dictGetVal(de);
@@ -382,7 +402,7 @@ void debugCommand(client *c) {
             nextra += used;
             remaining -= used;
             /* Add average quicklist fill factor */
-            double avg = (double)ql->count/ql->len;
+            double avg = (double) ql->count / ql->len;
             used = snprintf(nextra, remaining, " ql_avg_node:%.2f", avg);
             nextra += used;
             remaining -= used;
@@ -406,50 +426,51 @@ void debugCommand(client *c) {
         }
 
         addReplyStatusFormat(c,
-            "Value at:%p refcount:%d "
-            "encoding:%s serializedlength:%zu "
-            "lru:%d lru_seconds_idle:%llu%s",
-            (void*)val, val->refcount,
-            strenc, rdbSavedObjectLen(val),
-            val->lru, estimateObjectIdleTime(val)/1000, extra);
-    } else if (!strcasecmp(c->argv[1]->ptr,"sdslen") && c->argc == 3) {
+                             "Value at:%p refcount:%d "
+                             "encoding:%s serializedlength:%zu "
+                             "lru:%d lru_seconds_idle:%llu%s",
+                             (void *) val, val->refcount,
+                             strenc, rdbSavedObjectLen(val),
+                             val->lru, estimateObjectIdleTime(val) / 1000, extra);
+    } else if (!strcasecmp(c->argv[1]->ptr, "sdslen") && c->argc == 3) {
         dictEntry *de;
         robj *val;
         sds key;
 
-        if ((de = dictFind(c->db->dict,c->argv[2]->ptr)) == NULL) {
-            addReply(c,shared.nokeyerr);
+        if ((de = dictFind(c->db->dict, c->argv[2]->ptr)) == NULL) {
+            addReply(c, shared.nokeyerr);
             return;
         }
         val = dictGetVal(de);
         key = dictGetKey(de);
 
         if (val->type != OBJ_STRING || !sdsEncodedObject(val)) {
-            addReplyError(c,"Not an sds encoded string.");
+            addReplyError(c, "Not an sds encoded string.");
         } else {
             addReplyStatusFormat(c,
-                "key_sds_len:%lld, key_sds_avail:%lld, key_zmalloc: %lld, "
-                "val_sds_len:%lld, val_sds_avail:%lld, val_zmalloc: %lld",
-                (long long) sdslen(key),
-                (long long) sdsavail(key),
-                (long long) sdsZmallocSize(key),
-                (long long) sdslen(val->ptr),
-                (long long) sdsavail(val->ptr),
-                (long long) getStringObjectSdsUsedMemory(val));
+                                 "key_sds_len:%lld, key_sds_avail:%lld, key_zmalloc: %lld, "
+                                 "val_sds_len:%lld, val_sds_avail:%lld, val_zmalloc: %lld",
+                                 (long long) sdslen(key),
+                                 (long long) sdsavail(key),
+                                 (long long) sdsZmallocSize(key),
+                                 (long long) sdslen(val->ptr),
+                                 (long long) sdsavail(val->ptr),
+                                 (long long) getStringObjectSdsUsedMemory(val));
         }
-    } else if (!strcasecmp(c->argv[1]->ptr,"ziplist") && c->argc == 3) {
+    } else if (!strcasecmp(c->argv[1]->ptr, "ziplist") && c->argc == 3) {
         robj *o;
 
-        if ((o = objectCommandLookupOrReply(c,c->argv[2],shared.nokeyerr))
-                == NULL) return;
+        if ((o = objectCommandLookupOrReply(c, c->argv[2], shared.nokeyerr))
+            == NULL)
+            return;
 
         if (o->encoding != OBJ_ENCODING_ZIPLIST) {
-            addReplyError(c,"Not an sds encoded string.");
+            addReplyError(c, "Not an sds encoded string.");
         } else {
             ziplistRepr(o->ptr);
-            addReplyStatus(c,"Ziplist structure printed on stdout");
+            addReplyStatus(c, "Ziplist structure printed on stdout");
         }
-    } else if (!strcasecmp(c->argv[1]->ptr,"populate") &&
+    } else if (!strcasecmp(c->argv[1]->ptr, "populate") &&
                c->argc >= 3 && c->argc <= 5) {
         long keys, j;
         robj *key, *val;
@@ -457,80 +478,78 @@ void debugCommand(client *c) {
 
         if (getLongFromObjectOrReply(c, c->argv[2], &keys, NULL) != C_OK)
             return;
-        dictExpand(c->db->dict,keys);
+        dictExpand(c->db->dict, keys);
         for (j = 0; j < keys; j++) {
             long valsize = 0;
-            snprintf(buf,sizeof(buf),"%s:%lu",
-                (c->argc == 3) ? "key" : (char*)c->argv[3]->ptr, j);
-            key = createStringObject(buf,strlen(buf));
+            snprintf(buf, sizeof(buf), "%s:%lu",
+                     (c->argc == 3) ? "key" : (char *) c->argv[3]->ptr, j);
+            key = createStringObject(buf, strlen(buf));
             if (c->argc == 5)
                 if (getLongFromObjectOrReply(c, c->argv[4], &valsize, NULL) != C_OK)
                     return;
-            if (lookupKeyWrite(c->db,key) != NULL) {
+            if (lookupKeyWrite(c->db, key) != NULL) {
                 decrRefCount(key);
                 continue;
             }
-            snprintf(buf,sizeof(buf),"value:%lu",j);
-            if (valsize==0)
-                val = createStringObject(buf,strlen(buf));
+            snprintf(buf, sizeof(buf), "value:%lu", j);
+            if (valsize == 0)
+                val = createStringObject(buf, strlen(buf));
             else {
                 int buflen = strlen(buf);
-                val = createStringObject(NULL,valsize);
-                memcpy(val->ptr, buf, valsize<=buflen? valsize: buflen);
+                val = createStringObject(NULL, valsize);
+                memcpy(val->ptr, buf, valsize <= buflen ? valsize : buflen);
             }
-            dbAdd(c->db,key,val);
-            signalModifiedKey(c->db,key);
+            dbAdd(c->db, key, val);
+            signalModifiedKey(c->db, key);
             decrRefCount(key);
         }
-        addReply(c,shared.ok);
-    } else if (!strcasecmp(c->argv[1]->ptr,"digest") && c->argc == 2) {
+        addReply(c, shared.ok);
+    } else if (!strcasecmp(c->argv[1]->ptr, "digest") && c->argc == 2) {
         unsigned char digest[20];
         sds d = sdsempty();
         int j;
 
         computeDatasetDigest(digest);
         for (j = 0; j < 20; j++)
-            d = sdscatprintf(d, "%02x",digest[j]);
-        addReplyStatus(c,d);
+            d = sdscatprintf(d, "%02x", digest[j]);
+        addReplyStatus(c, d);
         sdsfree(d);
-    } else if (!strcasecmp(c->argv[1]->ptr,"sleep") && c->argc == 3) {
-        double dtime = strtod(c->argv[2]->ptr,NULL);
-        long long utime = dtime*1000000;
+    } else if (!strcasecmp(c->argv[1]->ptr, "sleep") && c->argc == 3) {
+        double dtime = strtod(c->argv[2]->ptr, NULL);
+        long long utime = dtime * 1000000;
         struct timespec tv;
 
         tv.tv_sec = utime / 1000000;
         tv.tv_nsec = (utime % 1000000) * 1000;
         nanosleep(&tv, NULL);
-        addReply(c,shared.ok);
-    } else if (!strcasecmp(c->argv[1]->ptr,"set-active-expire") &&
-               c->argc == 3)
-    {
+        addReply(c, shared.ok);
+    } else if (!strcasecmp(c->argv[1]->ptr, "set-active-expire") &&
+               c->argc == 3) {
         server.active_expire_enabled = atoi(c->argv[2]->ptr);
-        addReply(c,shared.ok);
-    } else if (!strcasecmp(c->argv[1]->ptr,"lua-always-replicate-commands") &&
-               c->argc == 3)
-    {
+        addReply(c, shared.ok);
+    } else if (!strcasecmp(c->argv[1]->ptr, "lua-always-replicate-commands") &&
+               c->argc == 3) {
         server.lua_always_replicate_commands = atoi(c->argv[2]->ptr);
-        addReply(c,shared.ok);
-    } else if (!strcasecmp(c->argv[1]->ptr,"error") && c->argc == 3) {
-        sds errstr = sdsnewlen("-",1);
+        addReply(c, shared.ok);
+    } else if (!strcasecmp(c->argv[1]->ptr, "error") && c->argc == 3) {
+        sds errstr = sdsnewlen("-", 1);
 
-        errstr = sdscatsds(errstr,c->argv[2]->ptr);
-        errstr = sdsmapchars(errstr,"\n\r","  ",2); /* no newlines in errors. */
-        errstr = sdscatlen(errstr,"\r\n",2);
-        addReplySds(c,errstr);
-    } else if (!strcasecmp(c->argv[1]->ptr,"structsize") && c->argc == 2) {
+        errstr = sdscatsds(errstr, c->argv[2]->ptr);
+        errstr = sdsmapchars(errstr, "\n\r", "  ", 2); /* no newlines in errors. */
+        errstr = sdscatlen(errstr, "\r\n", 2);
+        addReplySds(c, errstr);
+    } else if (!strcasecmp(c->argv[1]->ptr, "structsize") && c->argc == 2) {
         sds sizes = sdsempty();
-        sizes = sdscatprintf(sizes,"bits:%d ",(sizeof(void*) == 8)?64:32);
-        sizes = sdscatprintf(sizes,"robj:%d ",(int)sizeof(robj));
-        sizes = sdscatprintf(sizes,"dictentry:%d ",(int)sizeof(dictEntry));
-        sizes = sdscatprintf(sizes,"sdshdr5:%d ",(int)sizeof(struct sdshdr5));
-        sizes = sdscatprintf(sizes,"sdshdr8:%d ",(int)sizeof(struct sdshdr8));
-        sizes = sdscatprintf(sizes,"sdshdr16:%d ",(int)sizeof(struct sdshdr16));
-        sizes = sdscatprintf(sizes,"sdshdr32:%d ",(int)sizeof(struct sdshdr32));
-        sizes = sdscatprintf(sizes,"sdshdr64:%d ",(int)sizeof(struct sdshdr64));
-        addReplyBulkSds(c,sizes);
-    } else if (!strcasecmp(c->argv[1]->ptr,"htstats") && c->argc == 3) {
+        sizes = sdscatprintf(sizes, "bits:%d ", (sizeof(void *) == 8) ? 64 : 32);
+        sizes = sdscatprintf(sizes, "robj:%d ", (int) sizeof(robj));
+        sizes = sdscatprintf(sizes, "dictentry:%d ", (int) sizeof(dictEntry));
+        sizes = sdscatprintf(sizes, "sdshdr5:%d ", (int) sizeof(struct sdshdr5));
+        sizes = sdscatprintf(sizes, "sdshdr8:%d ", (int) sizeof(struct sdshdr8));
+        sizes = sdscatprintf(sizes, "sdshdr16:%d ", (int) sizeof(struct sdshdr16));
+        sizes = sdscatprintf(sizes, "sdshdr32:%d ", (int) sizeof(struct sdshdr32));
+        sizes = sdscatprintf(sizes, "sdshdr64:%d ", (int) sizeof(struct sdshdr64));
+        addReplyBulkSds(c, sizes);
+    } else if (!strcasecmp(c->argv[1]->ptr, "htstats") && c->argc == 3) {
         long dbid;
         sds stats = sdsempty();
         char buf[4096];
@@ -538,27 +557,27 @@ void debugCommand(client *c) {
         if (getLongFromObjectOrReply(c, c->argv[2], &dbid, NULL) != C_OK)
             return;
         if (dbid < 0 || dbid >= server.dbnum) {
-            addReplyError(c,"Out of range database");
+            addReplyError(c, "Out of range database");
             return;
         }
 
-        stats = sdscatprintf(stats,"[Dictionary HT]\n");
-        dictGetStats(buf,sizeof(buf),server.db[dbid].dict);
-        stats = sdscat(stats,buf);
+        stats = sdscatprintf(stats, "[Dictionary HT]\n");
+        dictGetStats(buf, sizeof(buf), server.db[dbid].dict);
+        stats = sdscat(stats, buf);
 
-        stats = sdscatprintf(stats,"[Expires HT]\n");
-        dictGetStats(buf,sizeof(buf),server.db[dbid].expires);
-        stats = sdscat(stats,buf);
+        stats = sdscatprintf(stats, "[Expires HT]\n");
+        dictGetStats(buf, sizeof(buf), server.db[dbid].expires);
+        stats = sdscat(stats, buf);
 
-        addReplyBulkSds(c,stats);
-    } else if (!strcasecmp(c->argv[1]->ptr,"change-repl-id") && c->argc == 2) {
-        serverLog(LL_WARNING,"Changing replication IDs after receiving DEBUG change-repl-id");
+        addReplyBulkSds(c, stats);
+    } else if (!strcasecmp(c->argv[1]->ptr, "change-repl-id") && c->argc == 2) {
+        serverLog(LL_WARNING, "Changing replication IDs after receiving DEBUG change-repl-id");
         changeReplicationId();
         clearReplicationId2();
-        addReply(c,shared.ok);
+        addReply(c, shared.ok);
     } else {
         addReplyErrorFormat(c, "Unknown DEBUG subcommand or wrong number of arguments for '%s'",
-            (char*)c->argv[1]->ptr);
+                            (char *) c->argv[1]->ptr);
     }
 }
 
@@ -566,99 +585,99 @@ void debugCommand(client *c) {
 
 void _serverAssert(const char *estr, const char *file, int line) {
     bugReportStart();
-    serverLog(LL_WARNING,"=== ASSERTION FAILED ===");
-    serverLog(LL_WARNING,"==> %s:%d '%s' is not true",file,line,estr);
+    serverLog(LL_WARNING, "=== ASSERTION FAILED ===");
+    serverLog(LL_WARNING, "==> %s:%d '%s' is not true", file, line, estr);
 #ifdef HAVE_BACKTRACE
     server.assert_failed = estr;
     server.assert_file = file;
     server.assert_line = line;
     serverLog(LL_WARNING,"(forcing SIGSEGV to print the bug report.)");
 #endif
-    *((char*)-1) = 'x';
+    *((char *) -1) = 'x';
 }
 
 void _serverAssertPrintClientInfo(const client *c) {
     int j;
 
     bugReportStart();
-    serverLog(LL_WARNING,"=== ASSERTION FAILED CLIENT CONTEXT ===");
-    serverLog(LL_WARNING,"client->flags = %d", c->flags);
-    serverLog(LL_WARNING,"client->fd = %d", c->fd);
-    serverLog(LL_WARNING,"client->argc = %d", c->argc);
-    for (j=0; j < c->argc; j++) {
+    serverLog(LL_WARNING, "=== ASSERTION FAILED CLIENT CONTEXT ===");
+    serverLog(LL_WARNING, "client->flags = %d", c->flags);
+    serverLog(LL_WARNING, "client->fd = %d", c->fd);
+    serverLog(LL_WARNING, "client->argc = %d", c->argc);
+    for (j = 0; j < c->argc; j++) {
         char buf[128];
         char *arg;
 
         if (c->argv[j]->type == OBJ_STRING && sdsEncodedObject(c->argv[j])) {
-            arg = (char*) c->argv[j]->ptr;
+            arg = (char *) c->argv[j]->ptr;
         } else {
-            snprintf(buf,sizeof(buf),"Object type: %u, encoding: %u",
-                c->argv[j]->type, c->argv[j]->encoding);
+            snprintf(buf, sizeof(buf), "Object type: %u, encoding: %u",
+                     c->argv[j]->type, c->argv[j]->encoding);
             arg = buf;
         }
-        serverLog(LL_WARNING,"client->argv[%d] = \"%s\" (refcount: %d)",
-            j, arg, c->argv[j]->refcount);
+        serverLog(LL_WARNING, "client->argv[%d] = \"%s\" (refcount: %d)",
+                  j, arg, c->argv[j]->refcount);
     }
 }
 
 void serverLogObjectDebugInfo(const robj *o) {
-    serverLog(LL_WARNING,"Object type: %d", o->type);
-    serverLog(LL_WARNING,"Object encoding: %d", o->encoding);
-    serverLog(LL_WARNING,"Object refcount: %d", o->refcount);
+    serverLog(LL_WARNING, "Object type: %d", o->type);
+    serverLog(LL_WARNING, "Object encoding: %d", o->encoding);
+    serverLog(LL_WARNING, "Object refcount: %d", o->refcount);
     if (o->type == OBJ_STRING && sdsEncodedObject(o)) {
-        serverLog(LL_WARNING,"Object raw string len: %zu", sdslen(o->ptr));
+        serverLog(LL_WARNING, "Object raw string len: %zu", sdslen(o->ptr));
         if (sdslen(o->ptr) < 4096) {
-            sds repr = sdscatrepr(sdsempty(),o->ptr,sdslen(o->ptr));
-            serverLog(LL_WARNING,"Object raw string content: %s", repr);
+            sds repr = sdscatrepr(sdsempty(), o->ptr, sdslen(o->ptr));
+            serverLog(LL_WARNING, "Object raw string content: %s", repr);
             sdsfree(repr);
         }
     } else if (o->type == OBJ_LIST) {
-        serverLog(LL_WARNING,"List length: %d", (int) listTypeLength(o));
+        serverLog(LL_WARNING, "List length: %d", (int) listTypeLength(o));
     } else if (o->type == OBJ_SET) {
-        serverLog(LL_WARNING,"Set size: %d", (int) setTypeSize(o));
+        serverLog(LL_WARNING, "Set size: %d", (int) setTypeSize(o));
     } else if (o->type == OBJ_HASH) {
-        serverLog(LL_WARNING,"Hash size: %d", (int) hashTypeLength(o));
+        serverLog(LL_WARNING, "Hash size: %d", (int) hashTypeLength(o));
     } else if (o->type == OBJ_ZSET) {
-        serverLog(LL_WARNING,"Sorted set size: %d", (int) zsetLength(o));
+        serverLog(LL_WARNING, "Sorted set size: %d", (int) zsetLength(o));
         if (o->encoding == OBJ_ENCODING_SKIPLIST)
-            serverLog(LL_WARNING,"Skiplist level: %d", (int) ((const zset*)o->ptr)->zsl->level);
+            serverLog(LL_WARNING, "Skiplist level: %d", (int) ((const zset *) o->ptr)->zsl->level);
     }
 }
 
 void _serverAssertPrintObject(const robj *o) {
     bugReportStart();
-    serverLog(LL_WARNING,"=== ASSERTION FAILED OBJECT CONTEXT ===");
+    serverLog(LL_WARNING, "=== ASSERTION FAILED OBJECT CONTEXT ===");
     serverLogObjectDebugInfo(o);
 }
 
 void _serverAssertWithInfo(const client *c, const robj *o, const char *estr, const char *file, int line) {
     if (c) _serverAssertPrintClientInfo(c);
     if (o) _serverAssertPrintObject(o);
-    _serverAssert(estr,file,line);
+    _serverAssert(estr, file, line);
 }
 
 void _serverPanic(const char *file, int line, const char *msg, ...) {
     va_list ap;
-    va_start(ap,msg);
+    va_start(ap, msg);
     char fmtmsg[256];
-    vsnprintf(fmtmsg,sizeof(fmtmsg),msg,ap);
+    vsnprintf(fmtmsg, sizeof(fmtmsg), msg, ap);
     va_end(ap);
 
     bugReportStart();
-    serverLog(LL_WARNING,"------------------------------------------------");
-    serverLog(LL_WARNING,"!!! Software Failure. Press left mouse button to continue");
-    serverLog(LL_WARNING,"Guru Meditation: %s #%s:%d",fmtmsg,file,line);
+    serverLog(LL_WARNING, "------------------------------------------------");
+    serverLog(LL_WARNING, "!!! Software Failure. Press left mouse button to continue");
+    serverLog(LL_WARNING, "Guru Meditation: %s #%s:%d", fmtmsg, file, line);
 #ifdef HAVE_BACKTRACE
     serverLog(LL_WARNING,"(forcing SIGSEGV in order to print the stack trace)");
 #endif
-    serverLog(LL_WARNING,"------------------------------------------------");
-    *((char*)-1) = 'x';
+    serverLog(LL_WARNING, "------------------------------------------------");
+    *((char *) -1) = 'x';
 }
 
 void bugReportStart(void) {
     if (server.bug_report_start == 0) {
-        serverLogRaw(LL_WARNING|LL_RAW,
-        "\n\n=== REDIS BUG REPORT START: Cut & paste starting from here ===\n");
+        serverLogRaw(LL_WARNING | LL_RAW,
+                     "\n\n=== REDIS BUG REPORT START: Cut & paste starting from here ===\n");
         server.bug_report_start = 1;
     }
 }
@@ -667,31 +686,31 @@ void bugReportStart(void) {
 static void *getMcontextEip(ucontext_t *uc) {
 #if defined(__APPLE__) && !defined(MAC_OS_X_VERSION_10_6)
     /* OSX < 10.6 */
-    #if defined(__x86_64__)
+#if defined(__x86_64__)
     return (void*) uc->uc_mcontext->__ss.__rip;
-    #elif defined(__i386__)
+#elif defined(__i386__)
     return (void*) uc->uc_mcontext->__ss.__eip;
-    #else
+#else
     return (void*) uc->uc_mcontext->__ss.__srr0;
-    #endif
+#endif
 #elif defined(__APPLE__) && defined(MAC_OS_X_VERSION_10_6)
     /* OSX >= 10.6 */
-    #if defined(_STRUCT_X86_THREAD_STATE64) && !defined(__i386__)
+#if defined(_STRUCT_X86_THREAD_STATE64) && !defined(__i386__)
     return (void*) uc->uc_mcontext->__ss.__rip;
-    #else
+#else
     return (void*) uc->uc_mcontext->__ss.__eip;
-    #endif
+#endif
 #elif defined(__linux__)
     /* Linux */
-    #if defined(__i386__)
+#if defined(__i386__)
     return (void*) uc->uc_mcontext.gregs[14]; /* Linux 32 */
-    #elif defined(__X86_64__) || defined(__x86_64__)
+#elif defined(__X86_64__) || defined(__x86_64__)
     return (void*) uc->uc_mcontext.gregs[16]; /* Linux 64 */
-    #elif defined(__ia64__) /* Linux IA64 */
+#elif defined(__ia64__) /* Linux IA64 */
     return (void*) uc->uc_mcontext.sc_ip;
-    #elif defined(__arm__) /* Linux ARM */
+#elif defined(__arm__) /* Linux ARM */
     return (void*) uc->uc_mcontext.arm_pc;
-    #endif
+#endif
 #else
     return NULL;
 #endif
@@ -716,7 +735,7 @@ void logRegisters(ucontext_t *uc) {
 /* OSX */
 #if defined(__APPLE__) && defined(MAC_OS_X_VERSION_10_6)
   /* OSX AMD64 */
-    #if defined(_STRUCT_X86_THREAD_STATE64) && !defined(__i386__)
+#if defined(_STRUCT_X86_THREAD_STATE64) && !defined(__i386__)
     serverLog(LL_WARNING,
     "\n"
     "RAX:%016lx RBX:%016lx\nRCX:%016lx RDX:%016lx\n"
@@ -747,7 +766,7 @@ void logRegisters(ucontext_t *uc) {
         (unsigned long) uc->uc_mcontext->__ss.__gs
     );
     logStackContent((void**)uc->uc_mcontext->__ss.__rsp);
-    #else
+#else
     /* OSX x86 */
     serverLog(LL_WARNING,
     "\n"
@@ -773,11 +792,11 @@ void logRegisters(ucontext_t *uc) {
         (unsigned long) uc->uc_mcontext->__ss.__gs
     );
     logStackContent((void**)uc->uc_mcontext->__ss.__esp);
-    #endif
+#endif
 /* Linux */
 #elif defined(__linux__)
     /* Linux x86 */
-    #if defined(__i386__)
+#if defined(__i386__)
     serverLog(LL_WARNING,
     "\n"
     "EAX:%08lx EBX:%08lx ECX:%08lx EDX:%08lx\n"
@@ -802,7 +821,7 @@ void logRegisters(ucontext_t *uc) {
         (unsigned long) uc->uc_mcontext.gregs[0]
     );
     logStackContent((void**)uc->uc_mcontext.gregs[7]);
-    #elif defined(__X86_64__) || defined(__x86_64__)
+#elif defined(__X86_64__) || defined(__x86_64__)
     /* Linux AMD64 */
     serverLog(LL_WARNING,
     "\n"
@@ -832,7 +851,7 @@ void logRegisters(ucontext_t *uc) {
         (unsigned long) uc->uc_mcontext.gregs[18]
     );
     logStackContent((void**)uc->uc_mcontext.gregs[15]);
-    #endif
+#endif
 #else
     serverLog(LL_WARNING,
         "  Dumping of registers not supported for this OS/arch");
@@ -1129,21 +1148,21 @@ void serverLogHexDump(int level, char *descr, void *value, size_t len) {
     unsigned char *v = value;
     char charset[] = "0123456789abcdef";
 
-    serverLog(level,"%s (hexdump of %zu bytes):", descr, len);
+    serverLog(level, "%s (hexdump of %zu bytes):", descr, len);
     b = buf;
-    while(len) {
-        b[0] = charset[(*v)>>4];
-        b[1] = charset[(*v)&0xf];
+    while (len) {
+        b[0] = charset[(*v) >> 4];
+        b[1] = charset[(*v) & 0xf];
         b[2] = '\0';
         b += 2;
         len--;
         v++;
-        if (b-buf == 64 || len == 0) {
-            serverLogRaw(level|LL_RAW,buf);
+        if (b - buf == 64 || len == 0) {
+            serverLogRaw(level | LL_RAW, buf);
             b = buf;
         }
     }
-    serverLogRaw(level|LL_RAW,"\n");
+    serverLogRaw(level | LL_RAW, "\n");
 }
 
 /* =========================== Software Watchdog ============================ */
@@ -1156,13 +1175,13 @@ void watchdogSignalHandler(int sig, siginfo_t *info, void *secret) {
     UNUSED(info);
     UNUSED(sig);
 
-    serverLogFromHandler(LL_WARNING,"\n--- WATCHDOG TIMER EXPIRED ---");
+    serverLogFromHandler(LL_WARNING, "\n--- WATCHDOG TIMER EXPIRED ---");
 #ifdef HAVE_BACKTRACE
     logStackTrace(uc);
 #else
-    serverLogFromHandler(LL_WARNING,"Sorry: no support for backtrace().");
+    serverLogFromHandler(LL_WARNING, "Sorry: no support for backtrace().");
 #endif
-    serverLogFromHandler(LL_WARNING,"--------\n");
+    serverLogFromHandler(LL_WARNING, "--------\n");
 }
 
 /* Schedule a SIGALRM delivery after the specified period in milliseconds.
@@ -1172,8 +1191,8 @@ void watchdogScheduleSignal(int period) {
     struct itimerval it;
 
     /* Will stop the timer if period is 0. */
-    it.it_value.tv_sec = period/1000;
-    it.it_value.tv_usec = (period%1000)*1000;
+    it.it_value.tv_sec = period / 1000;
+    it.it_value.tv_usec = (period % 1000) * 1000;
     /* Don't automatically restart. */
     it.it_interval.tv_sec = 0;
     it.it_interval.tv_usec = 0;
@@ -1197,7 +1216,7 @@ void enableWatchdog(int period) {
     /* If the configured period is smaller than twice the timer period, it is
      * too short for the software watchdog to work reliably. Fix it now
      * if needed. */
-    min_period = (1000/server.hz)*2;
+    min_period = (1000 / server.hz) * 2;
     if (period < min_period) period = min_period;
     watchdogScheduleSignal(period); /* Adjust the current timer. */
     server.watchdog_period = period;

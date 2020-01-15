@@ -144,20 +144,35 @@ extern void *raxNotFound;
 
 /* Exported API. */
 rax *raxNew(void);
+
 int raxInsert(rax *rax, unsigned char *s, size_t len, void *data, void **old);
+
 int raxRemove(rax *rax, unsigned char *s, size_t len, void **old);
+
 void *raxFind(rax *rax, unsigned char *s, size_t len);
+
 void raxFree(rax *rax);
-void raxFreeWithCallback(rax *rax, void (*free_callback)(void*));
+
+void raxFreeWithCallback(rax *rax, void (*free_callback)(void *));
+
 void raxStart(raxIterator *it, rax *rt);
+
 int raxSeek(raxIterator *it, const char *op, unsigned char *ele, size_t len);
+
 int raxNext(raxIterator *it);
+
 int raxPrev(raxIterator *it);
+
 int raxRandomWalk(raxIterator *it, size_t steps);
+
 int raxCompare(raxIterator *iter, const char *op, unsigned char *key, size_t key_len);
+
 void raxStop(raxIterator *it);
+
 int raxEOF(raxIterator *it);
+
 void raxShow(rax *rax);
+
 uint64_t raxSize(rax *rax);
 
 #endif

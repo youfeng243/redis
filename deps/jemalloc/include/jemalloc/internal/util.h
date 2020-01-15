@@ -87,48 +87,48 @@
  */
 #ifndef assert
 #define	assert(e) do {							\
-	if (unlikely(config_debug && !(e))) {				\
-		malloc_printf(						\
-		    "<jemalloc>: %s:%d: Failed assertion: \"%s\"\n",	\
-		    __FILE__, __LINE__, #e);				\
-		abort();						\
-	}								\
+    if (unlikely(config_debug && !(e))) {				\
+        malloc_printf(						\
+            "<jemalloc>: %s:%d: Failed assertion: \"%s\"\n",	\
+            __FILE__, __LINE__, #e);				\
+        abort();						\
+    }								\
 } while (0)
 #endif
 
 #ifndef not_reached
 #define	not_reached() do {						\
-	if (config_debug) {						\
-		malloc_printf(						\
-		    "<jemalloc>: %s:%d: Unreachable code reached\n",	\
-		    __FILE__, __LINE__);				\
-		abort();						\
-	}								\
-	unreachable();							\
+    if (config_debug) {						\
+        malloc_printf(						\
+            "<jemalloc>: %s:%d: Unreachable code reached\n",	\
+            __FILE__, __LINE__);				\
+        abort();						\
+    }								\
+    unreachable();							\
 } while (0)
 #endif
 
 #ifndef not_implemented
 #define	not_implemented() do {						\
-	if (config_debug) {						\
-		malloc_printf("<jemalloc>: %s:%d: Not implemented\n",	\
-		    __FILE__, __LINE__);				\
-		abort();						\
-	}								\
+    if (config_debug) {						\
+        malloc_printf("<jemalloc>: %s:%d: Not implemented\n",	\
+            __FILE__, __LINE__);				\
+        abort();						\
+    }								\
 } while (0)
 #endif
 
 #ifndef assert_not_implemented
 #define	assert_not_implemented(e) do {					\
-	if (unlikely(config_debug && !(e)))				\
-		not_implemented();					\
+    if (unlikely(config_debug && !(e)))				\
+        not_implemented();					\
 } while (0)
 #endif
 
 /* Use to assert a particular configuration, e.g., cassert(config_debug). */
 #define	cassert(c) do {							\
-	if (unlikely(!(c)))						\
-		not_reached();						\
+    if (unlikely(!(c)))						\
+        not_reached();						\
 } while (0)
 
 #endif /* JEMALLOC_H_TYPES */
@@ -182,14 +182,14 @@ JEMALLOC_ALWAYS_INLINE int
 jemalloc_ffsl(long bitmap)
 {
 
-	return (JEMALLOC_INTERNAL_FFSL(bitmap));
+    return (JEMALLOC_INTERNAL_FFSL(bitmap));
 }
 
 JEMALLOC_ALWAYS_INLINE int
 jemalloc_ffs(int bitmap)
 {
 
-	return (JEMALLOC_INTERNAL_FFS(bitmap));
+    return (JEMALLOC_INTERNAL_FFS(bitmap));
 }
 
 /* Compute the smallest power of 2 that is >= x. */
@@ -197,61 +197,61 @@ JEMALLOC_INLINE size_t
 pow2_ceil(size_t x)
 {
 
-	x--;
-	x |= x >> 1;
-	x |= x >> 2;
-	x |= x >> 4;
-	x |= x >> 8;
-	x |= x >> 16;
+    x--;
+    x |= x >> 1;
+    x |= x >> 2;
+    x |= x >> 4;
+    x |= x >> 8;
+    x |= x >> 16;
 #if (LG_SIZEOF_PTR == 3)
-	x |= x >> 32;
+    x |= x >> 32;
 #endif
-	x++;
-	return (x);
+    x++;
+    return (x);
 }
 
 #if (defined(__i386__) || defined(__amd64__) || defined(__x86_64__))
 JEMALLOC_INLINE size_t
 lg_floor(size_t x)
 {
-	size_t ret;
+    size_t ret;
 
-	assert(x != 0);
+    assert(x != 0);
 
-	asm ("bsr %1, %0"
-	    : "=r"(ret) // Outputs.
-	    : "r"(x)    // Inputs.
-	    );
-	return (ret);
+    asm ("bsr %1, %0"
+        : "=r"(ret) // Outputs.
+        : "r"(x)    // Inputs.
+        );
+    return (ret);
 }
 #elif (defined(_MSC_VER))
 JEMALLOC_INLINE size_t
 lg_floor(size_t x)
 {
-	unsigned long ret;
+    unsigned long ret;
 
-	assert(x != 0);
+    assert(x != 0);
 
 #if (LG_SIZEOF_PTR == 3)
-	_BitScanReverse64(&ret, x);
+    _BitScanReverse64(&ret, x);
 #elif (LG_SIZEOF_PTR == 2)
-	_BitScanReverse(&ret, x);
+    _BitScanReverse(&ret, x);
 #else
 #  error "Unsupported type sizes for lg_floor()"
 #endif
-	return (ret);
+    return (ret);
 }
 #elif (defined(JEMALLOC_HAVE_BUILTIN_CLZ))
 JEMALLOC_INLINE size_t
 lg_floor(size_t x)
 {
 
-	assert(x != 0);
+    assert(x != 0);
 
 #if (LG_SIZEOF_PTR == LG_SIZEOF_INT)
-	return (((8 << LG_SIZEOF_PTR) - 1) - __builtin_clz(x));
+    return (((8 << LG_SIZEOF_PTR) - 1) - __builtin_clz(x));
 #elif (LG_SIZEOF_PTR == LG_SIZEOF_LONG)
-	return (((8 << LG_SIZEOF_PTR) - 1) - __builtin_clzl(x));
+    return (((8 << LG_SIZEOF_PTR) - 1) - __builtin_clzl(x));
 #else
 #  error "Unsupported type sizes for lg_floor()"
 #endif
@@ -261,24 +261,24 @@ JEMALLOC_INLINE size_t
 lg_floor(size_t x)
 {
 
-	assert(x != 0);
+    assert(x != 0);
 
-	x |= (x >> 1);
-	x |= (x >> 2);
-	x |= (x >> 4);
-	x |= (x >> 8);
-	x |= (x >> 16);
+    x |= (x >> 1);
+    x |= (x >> 2);
+    x |= (x >> 4);
+    x |= (x >> 8);
+    x |= (x >> 16);
 #if (LG_SIZEOF_PTR == 3 && LG_SIZEOF_PTR == LG_SIZEOF_LONG)
-	x |= (x >> 32);
-	if (x == KZU(0xffffffffffffffff))
-		return (63);
-	x++;
-	return (jemalloc_ffsl(x) - 2);
+    x |= (x >> 32);
+    if (x == KZU(0xffffffffffffffff))
+        return (63);
+    x++;
+    return (jemalloc_ffsl(x) - 2);
 #elif (LG_SIZEOF_PTR == 2)
-	if (x == KZU(0xffffffff))
-		return (31);
-	x++;
-	return (jemalloc_ffs(x) - 2);
+    if (x == KZU(0xffffffff))
+        return (31);
+    x++;
+    return (jemalloc_ffs(x) - 2);
 #else
 #  error "Unsupported type sizes for lg_floor()"
 #endif
@@ -291,9 +291,9 @@ set_errno(int errnum)
 {
 
 #ifdef _WIN32
-	SetLastError(errnum);
+    SetLastError(errnum);
 #else
-	errno = errnum;
+    errno = errnum;
 #endif
 }
 
@@ -303,9 +303,9 @@ get_errno(void)
 {
 
 #ifdef _WIN32
-	return (GetLastError());
+    return (GetLastError());
 #else
-	return (errno);
+    return (errno);
 #endif
 }
 #endif

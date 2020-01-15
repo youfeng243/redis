@@ -140,8 +140,10 @@
 # include <climits>
 using namespace std;
 #else
+
 # include <string.h>
 # include <limits.h>
+
 #endif
 
 #ifndef LZF_USE_OFFSETS
@@ -151,7 +153,9 @@ using namespace std;
 #  if __cplusplus > 199711L
 #   include <cstdint>
 #  else
+
 #   include <stdint.h>
+
 #  endif
 #  define LZF_USE_OFFSETS (UINTPTR_MAX > 0xffffffffU)
 # endif
@@ -161,10 +165,10 @@ typedef unsigned char u8;
 
 #if LZF_USE_OFFSETS
 # define LZF_HSLOT_BIAS ((const u8 *)in_data)
-  typedef unsigned int LZF_HSLOT;
+typedef unsigned int LZF_HSLOT;
 #else
 # define LZF_HSLOT_BIAS 0
-  typedef const u8 *LZF_HSLOT;
+typedef const u8 *LZF_HSLOT;
 #endif
 
 typedef LZF_HSLOT LZF_STATE[1 << (HLOG)];

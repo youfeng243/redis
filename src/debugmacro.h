@@ -31,6 +31,7 @@
  */
 
 #include <stdio.h>
+
 #define D(...)                                                               \
     do {                                                                     \
         FILE *fp = fopen("/tmp/log.txt","a");                                \

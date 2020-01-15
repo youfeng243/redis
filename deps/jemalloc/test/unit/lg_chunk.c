@@ -8,19 +8,19 @@
 const char *malloc_conf = "lg_chunk:0";
 
 TEST_BEGIN(test_lg_chunk_clamp)
-{
-	void *p;
+        {
+                void * p;
 
-	p = mallocx(1, 0);
-	assert_ptr_not_null(p, "Unexpected mallocx() failure");
-	dallocx(p, 0);
-}
+                p = mallocx(1, 0);
+                assert_ptr_not_null(p, "Unexpected mallocx() failure");
+                dallocx(p, 0);
+        }
+
 TEST_END
 
 int
-main(void)
-{
+main(void) {
 
-	return (test(
-	    test_lg_chunk_clamp));
+    return (test(
+            test_lg_chunk_clamp));
 }

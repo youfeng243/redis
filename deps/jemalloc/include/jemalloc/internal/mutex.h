@@ -27,17 +27,17 @@ typedef struct malloc_mutex_s malloc_mutex_t;
 struct malloc_mutex_s {
 #ifdef _WIN32
 #  if _WIN32_WINNT >= 0x0600
-	SRWLOCK         	lock;
+    SRWLOCK         	lock;
 #  else
-	CRITICAL_SECTION	lock;
+    CRITICAL_SECTION	lock;
 #  endif
 #elif (defined(JEMALLOC_OSSPIN))
-	OSSpinLock		lock;
+    OSSpinLock		lock;
 #elif (defined(JEMALLOC_MUTEX_INIT_CB))
-	pthread_mutex_t		lock;
-	malloc_mutex_t		*postponed_next;
+    pthread_mutex_t		lock;
+    malloc_mutex_t		*postponed_next;
 #else
-	pthread_mutex_t		lock;
+    pthread_mutex_t		lock;
 #endif
 };
 
@@ -72,38 +72,38 @@ JEMALLOC_INLINE void
 malloc_mutex_lock(malloc_mutex_t *mutex)
 {
 
-	if (isthreaded) {
+    if (isthreaded) {
 #ifdef _WIN32
 #  if _WIN32_WINNT >= 0x0600
-		AcquireSRWLockExclusive(&mutex->lock);
+        AcquireSRWLockExclusive(&mutex->lock);
 #  else
-		EnterCriticalSection(&mutex->lock);
+        EnterCriticalSection(&mutex->lock);
 #  endif
 #elif (defined(JEMALLOC_OSSPIN))
-		OSSpinLockLock(&mutex->lock);
+        OSSpinLockLock(&mutex->lock);
 #else
-		pthread_mutex_lock(&mutex->lock);
+        pthread_mutex_lock(&mutex->lock);
 #endif
-	}
+    }
 }
 
 JEMALLOC_INLINE void
 malloc_mutex_unlock(malloc_mutex_t *mutex)
 {
 
-	if (isthreaded) {
+    if (isthreaded) {
 #ifdef _WIN32
 #  if _WIN32_WINNT >= 0x0600
-		ReleaseSRWLockExclusive(&mutex->lock);
+        ReleaseSRWLockExclusive(&mutex->lock);
 #  else
-		LeaveCriticalSection(&mutex->lock);
+        LeaveCriticalSection(&mutex->lock);
 #  endif
 #elif (defined(JEMALLOC_OSSPIN))
-		OSSpinLockUnlock(&mutex->lock);
+        OSSpinLockUnlock(&mutex->lock);
 #else
-		pthread_mutex_unlock(&mutex->lock);
+        pthread_mutex_unlock(&mutex->lock);
 #endif
-	}
+    }
 }
 #endif
 

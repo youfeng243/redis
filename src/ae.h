@@ -63,8 +63,11 @@ struct aeEventLoop;
 
 /* Types and data structures */
 typedef void aeFileProc(struct aeEventLoop *eventLoop, int fd, void *clientData, int mask);
+
 typedef int aeTimeProc(struct aeEventLoop *eventLoop, long long id, void *clientData);
+
 typedef void aeEventFinalizerProc(struct aeEventLoop *eventLoop, void *clientData);
+
 typedef void aeBeforeSleepProc(struct aeEventLoop *eventLoop);
 
 /* File event structure */
@@ -110,23 +113,38 @@ typedef struct aeEventLoop {
 
 /* Prototypes */
 aeEventLoop *aeCreateEventLoop(int setsize);
+
 void aeDeleteEventLoop(aeEventLoop *eventLoop);
+
 void aeStop(aeEventLoop *eventLoop);
+
 int aeCreateFileEvent(aeEventLoop *eventLoop, int fd, int mask,
-        aeFileProc *proc, void *clientData);
+                      aeFileProc *proc, void *clientData);
+
 void aeDeleteFileEvent(aeEventLoop *eventLoop, int fd, int mask);
+
 int aeGetFileEvents(aeEventLoop *eventLoop, int fd);
+
 long long aeCreateTimeEvent(aeEventLoop *eventLoop, long long milliseconds,
-        aeTimeProc *proc, void *clientData,
-        aeEventFinalizerProc *finalizerProc);
+                            aeTimeProc *proc, void *clientData,
+                            aeEventFinalizerProc *finalizerProc);
+
 int aeDeleteTimeEvent(aeEventLoop *eventLoop, long long id);
+
 int aeProcessEvents(aeEventLoop *eventLoop, int flags);
+
 int aeWait(int fd, int mask, long long milliseconds);
+
 void aeMain(aeEventLoop *eventLoop);
+
 char *aeGetApiName(void);
+
 void aeSetBeforeSleepProc(aeEventLoop *eventLoop, aeBeforeSleepProc *beforesleep);
+
 void aeSetAfterSleepProc(aeEventLoop *eventLoop, aeBeforeSleepProc *aftersleep);
+
 int aeGetSetSize(aeEventLoop *eventLoop);
+
 int aeResizeSetSize(aeEventLoop *eventLoop, int setsize);
 
 #endif

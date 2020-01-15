@@ -43,6 +43,7 @@ typedef struct slowlogEntry {
 
 /* Exported API */
 void slowlogInit(void);
+
 void slowlogPushEntryIfNeeded(client *c, robj **argv, int argc, long long duration);
 
 /* Exported commands */

@@ -12,17 +12,17 @@ typedef struct quarantine_s quarantine_t;
 #ifdef JEMALLOC_H_STRUCTS
 
 struct quarantine_obj_s {
-	void	*ptr;
-	size_t	usize;
+    void	*ptr;
+    size_t	usize;
 };
 
 struct quarantine_s {
-	size_t			curbytes;
-	size_t			curobjs;
-	size_t			first;
+    size_t			curbytes;
+    size_t			curobjs;
+    size_t			first;
 #define	LG_MAXOBJS_INIT 10
-	size_t			lg_maxobjs;
-	quarantine_obj_t	objs[1]; /* Dynamically sized ring buffer. */
+    size_t			lg_maxobjs;
+    quarantine_obj_t	objs[1]; /* Dynamically sized ring buffer. */
 };
 
 #endif /* JEMALLOC_H_STRUCTS */
@@ -45,13 +45,13 @@ void	quarantine_alloc_hook(void);
 JEMALLOC_ALWAYS_INLINE void
 quarantine_alloc_hook(void)
 {
-	tsd_t *tsd;
+    tsd_t *tsd;
 
-	assert(config_fill && opt_quarantine);
+    assert(config_fill && opt_quarantine);
 
-	tsd = tsd_fetch();
-	if (tsd_quarantine_get(tsd) == NULL)
-		quarantine_alloc_hook_work(tsd);
+    tsd = tsd_fetch();
+    if (tsd_quarantine_get(tsd) == NULL)
+        quarantine_alloc_hook_work(tsd);
 }
 #endif
 

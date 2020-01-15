@@ -33,6 +33,7 @@
 
 #ifndef __HIREDIS_H
 #define __HIREDIS_H
+
 #include "read.h"
 #include <stdarg.h> /* for va_list */
 #include <sys/time.h> /* for struct timeval */
@@ -125,10 +126,15 @@ void freeReplyObject(void *reply);
 
 /* Functions to format a command according to the protocol. */
 int redisvFormatCommand(char **target, const char *format, va_list ap);
+
 int redisFormatCommand(char **target, const char *format, ...);
+
 int redisFormatCommandArgv(char **target, int argc, const char **argv, const size_t *argvlen);
-int redisFormatSdsCommandArgv(sds *target, int argc, const char ** argv, const size_t *argvlen);
+
+int redisFormatSdsCommandArgv(sds *target, int argc, const char **argv, const size_t *argvlen);
+
 void redisFreeCommand(char *cmd);
+
 void redisFreeSdsCommand(sds cmd);
 
 enum redisConnectionType {
@@ -161,15 +167,23 @@ typedef struct redisContext {
 } redisContext;
 
 redisContext *redisConnect(const char *ip, int port);
+
 redisContext *redisConnectWithTimeout(const char *ip, int port, const struct timeval tv);
+
 redisContext *redisConnectNonBlock(const char *ip, int port);
+
 redisContext *redisConnectBindNonBlock(const char *ip, int port,
                                        const char *source_addr);
+
 redisContext *redisConnectBindNonBlockWithReuse(const char *ip, int port,
                                                 const char *source_addr);
+
 redisContext *redisConnectUnix(const char *path);
+
 redisContext *redisConnectUnixWithTimeout(const char *path, const struct timeval tv);
+
 redisContext *redisConnectUnixNonBlock(const char *path);
+
 redisContext *redisConnectFd(int fd);
 
 /**
@@ -184,10 +198,15 @@ redisContext *redisConnectFd(int fd);
 int redisReconnect(redisContext *c);
 
 int redisSetTimeout(redisContext *c, const struct timeval tv);
+
 int redisEnableKeepAlive(redisContext *c);
+
 void redisFree(redisContext *c);
+
 int redisFreeKeepFd(redisContext *c);
+
 int redisBufferRead(redisContext *c);
+
 int redisBufferWrite(redisContext *c, int *done);
 
 /* In a blocking context, this function first checks if there are unconsumed
@@ -195,6 +214,7 @@ int redisBufferWrite(redisContext *c, int *done);
  * buffer to the socket and reads until it has a reply. In a non-blocking
  * context, it will return unconsumed replies until there are no more. */
 int redisGetReply(redisContext *c, void **reply);
+
 int redisGetReplyFromReader(redisContext *c, void **reply);
 
 /* Write a formatted command to the output buffer. Use these functions in blocking mode
@@ -204,7 +224,9 @@ int redisAppendFormattedCommand(redisContext *c, const char *cmd, size_t len);
 /* Write a command to the output buffer. Use these functions in blocking mode
  * to get a pipeline of commands. */
 int redisvAppendCommand(redisContext *c, const char *format, va_list ap);
+
 int redisAppendCommand(redisContext *c, const char *format, ...);
+
 int redisAppendCommandArgv(redisContext *c, int argc, const char **argv, const size_t *argvlen);
 
 /* Issue a command to Redis. In a blocking context, it is identical to calling
@@ -213,7 +235,9 @@ int redisAppendCommandArgv(redisContext *c, int argc, const char **argv, const s
  * return the reply. In a non-blocking context, it is identical to calling
  * only redisAppendCommand and will always return NULL. */
 void *redisvCommand(redisContext *c, const char *format, va_list ap);
+
 void *redisCommand(redisContext *c, const char *format, ...);
+
 void *redisCommandArgv(redisContext *c, int argc, const char **argv, const size_t *argvlen);
 
 #ifdef __cplusplus

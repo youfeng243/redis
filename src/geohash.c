@@ -123,12 +123,14 @@ int geohashEncode(const GeoHashRange *long_range, const GeoHashRange *lat_range,
                   GeoHashBits *hash) {
     /* Check basic arguments sanity. */
     if (hash == NULL || step > 32 || step == 0 ||
-        RANGEPISZERO(lat_range) || RANGEPISZERO(long_range)) return 0;
+        RANGEPISZERO(lat_range) || RANGEPISZERO(long_range))
+        return 0;
 
     /* Return an error when trying to index outside the supported
      * constraints. */
     if (longitude > 180 || longitude < -180 ||
-        latitude > 85.05112878 || latitude < -85.05112878) return 0;
+        latitude > 85.05112878 || latitude < -85.05112878)
+        return 0;
 
     hash->bits = 0;
     hash->step = step;
@@ -139,9 +141,9 @@ int geohashEncode(const GeoHashRange *long_range, const GeoHashRange *lat_range,
     }
 
     double lat_offset =
-        (latitude - lat_range->min) / (lat_range->max - lat_range->min);
+            (latitude - lat_range->min) / (lat_range->max - lat_range->min);
     double long_offset =
-        (longitude - long_range->min) / (long_range->max - long_range->min);
+            (longitude - long_range->min) / (long_range->max - long_range->min);
 
     /* convert to fixed point based on the step size */
     lat_offset *= (1 << step);
@@ -162,7 +164,7 @@ int geohashEncodeWGS84(double longitude, double latitude, uint8_t step,
 }
 
 int geohashDecode(const GeoHashRange long_range, const GeoHashRange lat_range,
-                   const GeoHashBits hash, GeoHashArea *area) {
+                  const GeoHashBits hash, GeoHashArea *area) {
     if (HASHISZERO(hash) || NULL == area || RANGEISZERO(lat_range) ||
         RANGEISZERO(long_range)) {
         return 0;
@@ -182,13 +184,13 @@ int geohashDecode(const GeoHashRange long_range, const GeoHashRange lat_range,
      * Then, for 0-1 coordinate, multiply times scale and add
        to the min to get the absolute coordinate. */
     area->latitude.min =
-        lat_range.min + (ilato * 1.0 / (1ull << step)) * lat_scale;
+            lat_range.min + (ilato * 1.0 / (1ull << step)) * lat_scale;
     area->latitude.max =
-        lat_range.min + ((ilato + 1) * 1.0 / (1ull << step)) * lat_scale;
+            lat_range.min + ((ilato + 1) * 1.0 / (1ull << step)) * lat_scale;
     area->longitude.min =
-        long_range.min + (ilono * 1.0 / (1ull << step)) * long_scale;
+            long_range.min + (ilono * 1.0 / (1ull << step)) * long_scale;
     area->longitude.max =
-        long_range.min + ((ilono + 1) * 1.0 / (1ull << step)) * long_scale;
+            long_range.min + ((ilono + 1) * 1.0 / (1ull << step)) * long_scale;
 
     return 1;
 }
