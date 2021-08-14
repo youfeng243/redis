@@ -31,7 +31,7 @@
 #define SLOWLOG_ENTRY_MAX_STRING 128
 
 /* This structure defines an entry inside the slow log list */
-typedef struct slowlogEntry {
+typedef struct SlowlogEntry {
     robj **argv;
     int argc;
     long long id;       /* Unique entry identifier. */
@@ -39,7 +39,7 @@ typedef struct slowlogEntry {
     time_t time;        /* Unix time at which the query was executed. */
     sds cname;          /* Client name. */
     sds peerid;         /* Client network address. */
-} slowlogEntry;
+} SlowlogEntry;
 
 /* Exported API */
 void slowlogInit(void);

@@ -45,8 +45,8 @@
 /* Create a new slowlog entry.
  * Incrementing the ref count of all the objects retained is up to
  * this function. */
-slowlogEntry *slowlogCreateEntry(client *c, robj **argv, int argc, long long duration) {
-    slowlogEntry *se = zmalloc(sizeof(*se));
+SlowlogEntry *slowlogCreateEntry(client *c, robj **argv, int argc, long long duration) {
+    SlowlogEntry *se = zmalloc(sizeof(*se));
     int j, slargc = argc;
 
     if (slargc > SLOWLOG_ENTRY_MAX_ARGC) slargc = SLOWLOG_ENTRY_MAX_ARGC;
@@ -97,7 +97,7 @@ slowlogEntry *slowlogCreateEntry(client *c, robj **argv, int argc, long long dur
  *
  * This function will take care to release all the retained object. */
 void slowlogFreeEntry(void *septr) {
-    slowlogEntry *se = septr;
+    SlowlogEntry *se = septr;
     int j;
 
     for (j = 0; j < se->argc; j++)
@@ -150,7 +150,7 @@ void slowlogCommand(client *c) {
         listIter li;
         void *totentries;
         listNode *ln;
-        slowlogEntry *se;
+        SlowlogEntry *se;
 
         if (c->argc == 3 &&
             getLongFromObjectOrReply(c, c->argv[2], &count, NULL) != C_OK)
