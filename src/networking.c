@@ -1486,7 +1486,7 @@ void getClientsMaxBuffers(unsigned long *longest_output_list,
  * On failure the function still populates 'peerid' with the "?:0" string
  * in case you want to relax error checking or need to display something
  * anyway (see anetPeerToString implementation for more info). */
-void genClientPeerId(client *client, char *peerid,
+void __genClientPeerId(client *client, char *peerid,
                             size_t peerid_len) {
     if (client->flags & CLIENT_UNIX_SOCKET) {
         /* Unix socket client. */
@@ -1505,7 +1505,7 @@ char *getClientPeerId(client *c) {
     char peerid[NET_PEER_ID_LEN];
 
     if (c->peerid == NULL) {
-        genClientPeerId(c,peerid,sizeof(peerid));
+        __genClientPeerId(c,peerid,sizeof(peerid));
         c->peerid = sdsnew(peerid);
     }
     return c->peerid;
