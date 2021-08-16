@@ -45,7 +45,7 @@
 /* Create a new slowlog entry.
  * Incrementing the ref count of all the objects retained is up to
  * this function. */
-SlowlogEntry *slowlogCreateEntry(client *c, robj **argv, int argc, long long duration) {
+SlowlogEntry *__slowlogCreateEntry(client *c, robj **argv, int argc, long long duration) {
     SlowlogEntry *se = zmalloc(sizeof(*se));
     int j, slargc = argc;
 
@@ -96,7 +96,7 @@ SlowlogEntry *slowlogCreateEntry(client *c, robj **argv, int argc, long long dur
  * function matches the one of the 'free' method of adlist.c.
  *
  * This function will take care to release all the retained object. */
-void slowlogFreeEntry(void *septr) {
+void __slowlogFreeEntry(void *septr) {
     SlowlogEntry *se = septr;
     int j;
 
@@ -113,7 +113,7 @@ void slowlogFreeEntry(void *septr) {
 void slowlogInit(void) {
     server.slowlog = listCreate();
     server.slowlog_entry_id = 0;
-    listSetFreeMethod(server.slowlog, slowlogFreeEntry);
+    listSetFreeMethod(server.slowlog, __slowlogFreeEntry);
 }
 
 /* Push a new entry into the slow log.
@@ -123,7 +123,7 @@ void slowlogPushEntryIfNeeded(client *c, robj **argv, int argc, long long durati
     if (server.slowlog_log_slower_than < 0) return; /* Slowlog disabled */
     if (duration >= server.slowlog_log_slower_than)
         listAddNodeHead(server.slowlog,
-                        slowlogCreateEntry(c, argv, argc, duration));
+                        __slowlogCreateEntry(c, argv, argc, duration));
 
     /* Remove old entries if needed. */
     while (listLength(server.slowlog) > server.slowlog_max_len)
@@ -131,7 +131,7 @@ void slowlogPushEntryIfNeeded(client *c, robj **argv, int argc, long long durati
 }
 
 /* Remove all the entries from the current slow log. */
-void slowlogReset(void) {
+void __slowlogReset(void) {
     while (listLength(server.slowlog) > 0)
         listDelNode(server.slowlog, listLast(server.slowlog));
 }
@@ -140,7 +140,7 @@ void slowlogReset(void) {
  * Redis slow log. */
 void slowlogCommand(client *c) {
     if (c->argc == 2 && !strcasecmp(c->argv[1]->ptr, "reset")) {
-        slowlogReset();
+        __slowlogReset();
         addReply(c, shared.ok);
     } else if (c->argc == 2 && !strcasecmp(c->argv[1]->ptr, "len")) {
         addReplyLongLong(c, listLength(server.slowlog));
