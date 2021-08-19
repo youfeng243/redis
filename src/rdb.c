@@ -1776,8 +1776,8 @@ void backgroundSaveDoneHandlerSocket(int exitcode, int bysignal) {
 
     /* We can continue the replication process with all the slaves that
      * correctly received the full payload. Others are terminated. */
-    listNode *ln;
-    listIter li;
+    ListNode *ln;
+    ListIter li;
 
     listRewind(server.slaves,&li);
     while((ln = listNext(&li))) {
@@ -1839,8 +1839,8 @@ int rdbSaveToSlavesSockets(rdbSaveInfo *rsi) {
     int *fds;
     uint64_t *clientids;
     int numfds;
-    listNode *ln;
-    listIter li;
+    ListNode *ln;
+    ListIter li;
     pid_t childpid;
     long long start;
     int pipefds[2];

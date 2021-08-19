@@ -607,7 +607,7 @@ int parseScanCursorOrReply(client *c, robj *o, unsigned long *cursor) {
 void scanGenericCommand(client *c, robj *o, unsigned long cursor) {
     int i, j;
     list *keys = listCreate();
-    listNode *node, *nextnode;
+    ListNode *node, *nextnode;
     long count = 10;
     sds pat = NULL;
     int patlen = 0, use_pattern = 0;

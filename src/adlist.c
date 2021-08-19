@@ -54,7 +54,7 @@ list *listCreate(void) {
 /* Remove all the elements from the list without destroying the list itself. */
 void listEmpty(list *list) {
     unsigned long len;
-    listNode *current, *next;
+    ListNode *current, *next;
 
     current = list->head;
     len = list->len;
@@ -83,7 +83,7 @@ void listRelease(list *list) {
  * list remains unaltered).
  * On success the 'list' pointer you pass to the function is returned. */
 list *listAddNodeHead(list *list, void *value) {
-    listNode *node;
+    ListNode *node;
 
     if ((node = zmalloc(sizeof(*node))) == NULL)
         return NULL;
@@ -108,7 +108,7 @@ list *listAddNodeHead(list *list, void *value) {
  * list remains unaltered).
  * On success the 'list' pointer you pass to the function is returned. */
 list *listAddNodeTail(list *list, void *value) {
-    listNode *node;
+    ListNode *node;
 
     if ((node = zmalloc(sizeof(*node))) == NULL)
         return NULL;
@@ -126,8 +126,8 @@ list *listAddNodeTail(list *list, void *value) {
     return list;
 }
 
-list *listInsertNode(list *list, listNode *old_node, void *value, int after) {
-    listNode *node;
+list *listInsertNode(list *list, ListNode *old_node, void *value, int after) {
+    ListNode *node;
 
     if ((node = zmalloc(sizeof(*node))) == NULL)
         return NULL;
@@ -159,7 +159,7 @@ list *listInsertNode(list *list, listNode *old_node, void *value, int after) {
  * It's up to the caller to free the private value of the node.
  *
  * This function can't fail. */
-void listDelNode(list *list, listNode *node) {
+void listDelNode(list *list, ListNode *node) {
     if (node->prev)
         node->prev->next = node->next;
     else
@@ -177,8 +177,8 @@ void listDelNode(list *list, listNode *node) {
  * call to listNext() will return the next element of the list.
  *
  * This function can't fail. */
-listIter *listGetIterator(list *list, int direction) {
-    listIter *iter;
+ListIter *listGetIterator(list *list, int direction) {
+    ListIter *iter;
 
     if ((iter = zmalloc(sizeof(*iter))) == NULL) return NULL;
     if (direction == AL_START_HEAD)
@@ -190,17 +190,17 @@ listIter *listGetIterator(list *list, int direction) {
 }
 
 /* Release the iterator memory */
-void listReleaseIterator(listIter *iter) {
+void listReleaseIterator(ListIter *iter) {
     zfree(iter);
 }
 
 /* Create an iterator in the list private iterator structure */
-void listRewind(list *list, listIter *li) {
+void listRewind(list *list, ListIter *li) {
     li->next = list->head;
     li->direction = AL_START_HEAD;
 }
 
-void listRewindTail(list *list, listIter *li) {
+void listRewindTail(list *list, ListIter *li) {
     li->next = list->tail;
     li->direction = AL_START_TAIL;
 }
@@ -219,8 +219,8 @@ void listRewindTail(list *list, listIter *li) {
  * }
  *
  * */
-listNode *listNext(listIter *iter) {
-    listNode *current = iter->next;
+ListNode *listNext(ListIter *iter) {
+    ListNode *current = iter->next;
 
     if (current != NULL) {
         if (iter->direction == AL_START_HEAD)
@@ -241,8 +241,8 @@ listNode *listNext(listIter *iter) {
  * The original list both on success or error is never modified. */
 list *listDup(list *orig) {
     list *copy;
-    listIter iter;
-    listNode *node;
+    ListIter iter;
+    ListNode *node;
 
     if ((copy = listCreate()) == NULL)
         return NULL;
@@ -278,9 +278,9 @@ list *listDup(list *orig) {
  * On success the first matching node pointer is returned
  * (search starts from head). If no matching node exists
  * NULL is returned. */
-listNode *listSearchKey(list *list, void *key) {
-    listIter iter;
-    listNode *node;
+ListNode *listSearchKey(list *list, void *key) {
+    ListIter iter;
+    ListNode *node;
 
     listRewind(list, &iter);
     while ((node = listNext(&iter)) != NULL) {
@@ -302,8 +302,8 @@ listNode *listSearchKey(list *list, void *key) {
  * and so on. Negative integers are used in order to count
  * from the tail, -1 is the last element, -2 the penultimate
  * and so on. If the index is out of range NULL is returned. */
-listNode *listIndex(list *list, long index) {
-    listNode *n;
+ListNode *listIndex(list *list, long index) {
+    ListNode *n;
 
     if (index < 0) {
         index = (-index) - 1;
@@ -318,7 +318,7 @@ listNode *listIndex(list *list, long index) {
 
 /* Rotate the list removing the tail node and inserting it to the head. */
 void listRotate(list *list) {
-    listNode *tail = list->tail;
+    ListNode *tail = list->tail;
 
     if (listLength(list) <= 1) return;
 

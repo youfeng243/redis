@@ -354,8 +354,8 @@ size_t freeMemoryGetNotCountedMemory(void) {
     int slaves = listLength(server.slaves);
 
     if (slaves) {
-        listIter li;
-        listNode *ln;
+        ListIter li;
+        ListNode *ln;
 
         listRewind(server.slaves,&li);
         while((ln = listNext(&li))) {

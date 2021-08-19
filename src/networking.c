@@ -229,7 +229,7 @@ void _addReplyObjectToList(client *c, robj *o) {
         listAddNodeTail(c->reply,s);
         c->reply_bytes += sdslen(s);
     } else {
-        listNode *ln = listLast(c->reply);
+        ListNode *ln = listLast(c->reply);
         sds tail = listNodeValue(ln);
 
         /* Append to this object when possible. If tail == NULL it was
@@ -259,7 +259,7 @@ void _addReplySdsToList(client *c, sds s) {
         listAddNodeTail(c->reply,s);
         c->reply_bytes += sdslen(s);
     } else {
-        listNode *ln = listLast(c->reply);
+        ListNode *ln = listLast(c->reply);
         sds tail = listNodeValue(ln);
 
         /* Append to this object when possible. If tail == NULL it was
@@ -285,7 +285,7 @@ void _addReplyStringToList(client *c, const char *s, size_t len) {
         listAddNodeTail(c->reply,node);
         c->reply_bytes += len;
     } else {
-        listNode *ln = listLast(c->reply);
+        ListNode *ln = listLast(c->reply);
         sds tail = listNodeValue(ln);
 
         /* Append to this object when possible. If tail == NULL it was
@@ -438,7 +438,7 @@ void *addDeferredMultiBulkLength(client *c) {
 
 /* Populate the length object and try gluing it to the next chunk. */
 void setDeferredMultiBulkLength(client *c, void *node, long length) {
-    listNode *ln = (listNode*)node;
+    ListNode *ln = (ListNode*)node;
     sds len, next;
 
     /* Abort when *node is NULL: when the client should not accept writes
@@ -733,7 +733,7 @@ static void freeClientArgv(client *c) {
  * resync with us as well. */
 void disconnectSlaves(void) {
     while (listLength(server.slaves)) {
-        listNode *ln = listFirst(server.slaves);
+        ListNode *ln = listFirst(server.slaves);
         freeClient((client*)ln->value);
     }
 }
@@ -742,7 +742,7 @@ void disconnectSlaves(void) {
  * be referenced, not including the Pub/Sub channels.
  * This is used by freeClient() and replicationCacheMaster(). */
 void unlinkClient(client *c) {
-    listNode *ln;
+    ListNode *ln;
 
     /* If this is marked as current client unset it. */
     if (server.current_client == c) server.current_client = NULL;
@@ -782,7 +782,7 @@ void unlinkClient(client *c) {
 }
 
 void freeClient(client *c) {
-    listNode *ln;
+    ListNode *ln;
 
     /* If it is our master that's beging disconnected we should make sure
      * to cache the state to try a partial resynchronization later.
@@ -887,7 +887,7 @@ void freeClientAsync(client *c) {
 
 void freeClientsInAsyncFreeQueue(void) {
     while (listLength(server.clients_to_close)) {
-        listNode *ln = listFirst(server.clients_to_close);
+        ListNode *ln = listFirst(server.clients_to_close);
         client *c = listNodeValue(ln);
 
         c->flags &= ~CLIENT_CLOSE_ASAP;
@@ -1001,8 +1001,8 @@ void sendReplyToClient(aeEventLoop *el, int fd, void *privdata, int mask) {
  * need to use a syscall in order to install the writable event handler,
  * get it called, and so forth. */
 int handleClientsWithPendingWrites(void) {
-    listIter li;
-    listNode *ln;
+    ListIter li;
+    ListNode *ln;
     int processed = listLength(server.clients_pending_write);
 
     listRewind(server.clients_pending_write,&li);
@@ -1460,8 +1460,8 @@ void readQueryFromClient(aeEventLoop *el, int fd, void *privdata, int mask) {
 void getClientsMaxBuffers(unsigned long *longest_output_list,
                           unsigned long *biggest_input_buffer) {
     client *c;
-    listNode *ln;
-    listIter li;
+    ListNode *ln;
+    ListIter li;
     unsigned long lol = 0, bib = 0;
 
     listRewind(server.clients,&li);
@@ -1564,8 +1564,8 @@ sds catClientInfoString(sds s, client *client) {
 }
 
 sds getAllClientsInfoString(void) {
-    listNode *ln;
-    listIter li;
+    ListNode *ln;
+    ListIter li;
     client *client;
     sds o = sdsnewlen(NULL,200*listLength(server.clients));
     sdsclear(o);
@@ -1579,8 +1579,8 @@ sds getAllClientsInfoString(void) {
 }
 
 void clientCommand(client *c) {
-    listNode *ln;
-    listIter li;
+    ListNode *ln;
+    ListIter li;
     client *client;
 
     if (!strcasecmp(c->argv[1]->ptr,"list") && c->argc == 2) {
@@ -1838,7 +1838,7 @@ void rewriteClientCommandArgument(client *c, int i, robj *newval) {
  * the caller wishes. The main usage of this function currently is
  * enforcing the client output length limits. */
 unsigned long getClientOutputBufferMemoryUsage(client *c) {
-    unsigned long list_item_size = sizeof(listNode)+5;
+    unsigned long list_item_size = sizeof(ListNode)+5;
     /* The +5 above means we assume an sds16 hdr, may not be true
      * but is not going to be a problem. */
 
@@ -1948,8 +1948,8 @@ void asyncCloseClientOnOutputBufferLimitReached(client *c) {
  * This is also called by SHUTDOWN for a best-effort attempt to send
  * slaves the latest writes. */
 void flushSlavesOutputBuffers(void) {
-    listIter li;
-    listNode *ln;
+    ListIter li;
+    ListNode *ln;
 
     listRewind(server.slaves,&li);
     while((ln = listNext(&li))) {
@@ -2001,8 +2001,8 @@ int clientsArePaused(void) {
     if (server.clients_paused &&
         server.clients_pause_end_time < server.mstime)
     {
-        listNode *ln;
-        listIter li;
+        ListNode *ln;
+        ListIter li;
         client *c;
 
         server.clients_paused = 0;

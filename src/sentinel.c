@@ -696,8 +696,8 @@ void sentinelScheduleScriptExecution(char *path, ...) {
 
     /* Remove the oldest non running script if we already hit the limit. */
     if (listLength(sentinel.scripts_queue) > SENTINEL_SCRIPT_MAX_QUEUE) {
-        listNode *ln;
-        listIter li;
+        ListNode *ln;
+        ListIter li;
 
         listRewind(sentinel.scripts_queue,&li);
         while ((ln = listNext(&li)) != NULL) {
@@ -716,9 +716,9 @@ void sentinelScheduleScriptExecution(char *path, ...) {
 
 /* Lookup a script in the scripts queue via pid, and returns the list node
  * (so that we can easily remove it from the queue if needed). */
-listNode *sentinelGetScriptListNodeByPid(pid_t pid) {
-    listNode *ln;
-    listIter li;
+ListNode *sentinelGetScriptListNodeByPid(pid_t pid) {
+    ListNode *ln;
+    ListIter li;
 
     listRewind(sentinel.scripts_queue,&li);
     while ((ln = listNext(&li)) != NULL) {
@@ -733,8 +733,8 @@ listNode *sentinelGetScriptListNodeByPid(pid_t pid) {
 /* Run pending scripts if we are not already at max number of running
  * scripts. */
 void sentinelRunPendingScripts(void) {
-    listNode *ln;
-    listIter li;
+    ListNode *ln;
+    ListIter li;
     mstime_t now = mstime();
 
     /* Find jobs that are not running and run them, from the top to the
@@ -803,7 +803,7 @@ void sentinelCollectTerminatedScripts(void) {
     while ((pid = wait3(&statloc,WNOHANG,NULL)) > 0) {
         int exitcode = WEXITSTATUS(statloc);
         int bysignal = 0;
-        listNode *ln;
+        ListNode *ln;
         sentinelScriptJob *sj;
 
         if (WIFSIGNALED(statloc)) bysignal = WTERMSIG(statloc);
@@ -844,8 +844,8 @@ void sentinelCollectTerminatedScripts(void) {
 /* Kill scripts in timeout, they'll be collected by the
  * sentinelCollectTerminatedScripts() function. */
 void sentinelKillTimedoutScripts(void) {
-    listNode *ln;
-    listIter li;
+    ListNode *ln;
+    ListIter li;
     mstime_t now = mstime();
 
     listRewind(sentinel.scripts_queue,&li);
@@ -864,8 +864,8 @@ void sentinelKillTimedoutScripts(void) {
 
 /* Implements SENTINEL PENDING-SCRIPTS command. */
 void sentinelPendingScriptsCommand(client *c) {
-    listNode *ln;
-    listIter li;
+    ListNode *ln;
+    ListIter li;
 
     addReplyMultiBulkLen(c,listLength(sentinel.scripts_queue));
     listRewind(sentinel.scripts_queue,&li);

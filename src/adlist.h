@@ -33,20 +33,20 @@
 
 /* Node, List, and Iterator are the only data structures used currently. */
 
-typedef struct listNode {
-    struct listNode *prev;
-    struct listNode *next;
+typedef struct ListNode {
+    struct ListNode *prev;
+    struct ListNode *next;
     void *value;
-} listNode;
+} ListNode;
 
-typedef struct listIter {
-    listNode *next;
+typedef struct ListIter {
+    ListNode *next;
     int direction;
-} listIter;
+} ListIter;
 
 typedef struct list {
-    listNode *head;
-    listNode *tail;
+    ListNode *head;
+    ListNode *tail;
     void *(*dup)(void *ptr);
     void (*free)(void *ptr);
     int (*match)(void *ptr, void *key);
@@ -75,16 +75,16 @@ void listRelease(list *list);
 void listEmpty(list *list);
 list *listAddNodeHead(list *list, void *value);
 list *listAddNodeTail(list *list, void *value);
-list *listInsertNode(list *list, listNode *old_node, void *value, int after);
-void listDelNode(list *list, listNode *node);
-listIter *listGetIterator(list *list, int direction);
-listNode *listNext(listIter *iter);
-void listReleaseIterator(listIter *iter);
+list *listInsertNode(list *list, ListNode *old_node, void *value, int after);
+void listDelNode(list *list, ListNode *node);
+ListIter *listGetIterator(list *list, int direction);
+ListNode *listNext(ListIter *iter);
+void listReleaseIterator(ListIter *iter);
 list *listDup(list *orig);
-listNode *listSearchKey(list *list, void *key);
-listNode *listIndex(list *list, long index);
-void listRewind(list *list, listIter *li);
-void listRewindTail(list *list, listIter *li);
+ListNode *listSearchKey(list *list, void *key);
+ListNode *listIndex(list *list, long index);
+void listRewind(list *list, ListIter *li);
+void listRewindTail(list *list, ListIter *li);
 void listRotate(list *list);
 void listJoin(list *l, list *o);
 

@@ -77,8 +77,8 @@ void aofRewriteBufferReset(void) {
 
 /* Return the current size of the AOF rewrite buffer. */
 unsigned long aofRewriteBufferSize(void) {
-    listNode *ln;
-    listIter li;
+    ListNode *ln;
+    ListIter li;
     unsigned long size = 0;
 
     listRewind(server.aof_rewrite_buf_blocks,&li);
@@ -93,7 +93,7 @@ unsigned long aofRewriteBufferSize(void) {
  * rewrite. We send pieces of our AOF differences buffer so that the final
  * write when the child finishes the rewrite will be small. */
 void aofChildWriteDiffData(aeEventLoop *el, int fd, void *privdata, int mask) {
-    listNode *ln;
+    ListNode *ln;
     aofrwblock *block;
     ssize_t nwritten;
     UNUSED(el);
@@ -123,7 +123,7 @@ void aofChildWriteDiffData(aeEventLoop *el, int fd, void *privdata, int mask) {
 
 /* Append data to the AOF rewrite buffer, allocating new blocks if needed. */
 void aofRewriteBufferAppend(unsigned char *s, unsigned long len) {
-    listNode *ln = listLast(server.aof_rewrite_buf_blocks);
+    ListNode *ln = listLast(server.aof_rewrite_buf_blocks);
     aofrwblock *block = ln ? ln->value : NULL;
 
     while(len) {
@@ -172,8 +172,8 @@ void aofRewriteBufferAppend(unsigned char *s, unsigned long len) {
  * fd. If a short write or any other error happens -1 is returned,
  * otherwise the number of bytes written is returned. */
 ssize_t aofRewriteBufferWrite(int fd) {
-    listNode *ln;
-    listIter li;
+    ListNode *ln;
+    ListIter li;
     ssize_t count = 0;
 
     listRewind(server.aof_rewrite_buf_blocks,&li);

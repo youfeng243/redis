@@ -807,7 +807,7 @@ void handleClientsBlockedOnLists(void) {
         server.ready_keys = listCreate();
 
         while(listLength(l) != 0) {
-            listNode *ln = listFirst(l);
+            ListNode *ln = listFirst(l);
             readyList *rl = ln->value;
 
             /* First of all remove this key from db->ready_keys so that
@@ -828,7 +828,7 @@ void handleClientsBlockedOnLists(void) {
                     int numclients = listLength(clients);
 
                     while(numclients--) {
-                        listNode *clientnode = listFirst(clients);
+                        ListNode *clientnode = listFirst(clients);
                         client *receiver = clientnode->value;
                         robj *dstkey = receiver->bpop.target;
                         int where = (receiver->lastcmd &&

@@ -169,7 +169,7 @@ void *bioProcessBackgroundJobs(void *arg) {
             "Warning: can't mask SIGALRM in bio.c thread: %s", strerror(errno));
 
     while(1) {
-        listNode *ln;
+        ListNode *ln;
 
         /* The loop always starts with the lock hold. */
         if (listLength(bio_jobs[type]) == 0) {

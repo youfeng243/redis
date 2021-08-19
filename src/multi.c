@@ -216,8 +216,8 @@ typedef struct watchedKey {
 /* Watch for the specified key */
 void watchForKey(client *c, robj *key) {
     list *clients = NULL;
-    listIter li;
-    listNode *ln;
+    ListIter li;
+    ListNode *ln;
     watchedKey *wk;
 
     /* Check if we are already watching for this key */
@@ -246,8 +246,8 @@ void watchForKey(client *c, robj *key) {
 /* Unwatch all the keys watched by this client. To clean the EXEC dirty
  * flag is up to the caller. */
 void unwatchAllKeys(client *c) {
-    listIter li;
-    listNode *ln;
+    ListIter li;
+    ListNode *ln;
 
     if (listLength(c->watched_keys) == 0) return;
     listRewind(c->watched_keys,&li);
@@ -275,8 +275,8 @@ void unwatchAllKeys(client *c) {
  * next EXEC will fail. */
 void touchWatchedKey(redisDb *db, robj *key) {
     list *clients;
-    listIter li;
-    listNode *ln;
+    ListIter li;
+    ListNode *ln;
 
     if (dictSize(db->watched_keys) == 0) return;
     clients = dictFetchValue(db->watched_keys, key);
@@ -297,8 +297,8 @@ void touchWatchedKey(redisDb *db, robj *key) {
  * be touched. "dbid" is the DB that's getting the flush. -1 if it is
  * a FLUSHALL operation (all the DBs flushed). */
 void touchWatchedKeysOnFlush(int dbid) {
-    listIter li1, li2;
-    listNode *ln;
+    ListIter li1, li2;
+    ListNode *ln;
 
     /* For every client, check all the waited keys */
     listRewind(server.clients,&li1);

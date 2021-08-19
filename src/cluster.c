@@ -733,8 +733,8 @@ clusterNode *createClusterNode(char *nodename, int flags) {
  * report is created. */
 int clusterNodeAddFailureReport(clusterNode *failing, clusterNode *sender) {
     list *l = failing->fail_reports;
-    listNode *ln;
-    listIter li;
+    ListNode *ln;
+    ListIter li;
     clusterNodeFailReport *fr;
 
     /* If a failure report from the same sender already exists, just update
@@ -763,8 +763,8 @@ int clusterNodeAddFailureReport(clusterNode *failing, clusterNode *sender) {
  * of failure reports from other nodes. */
 void clusterNodeCleanupFailureReports(clusterNode *node) {
     list *l = node->fail_reports;
-    listNode *ln;
-    listIter li;
+    ListNode *ln;
+    ListIter li;
     clusterNodeFailReport *fr;
     mstime_t maxtime = server.cluster_node_timeout *
                      CLUSTER_FAIL_REPORT_VALIDITY_MULT;
@@ -790,8 +790,8 @@ void clusterNodeCleanupFailureReports(clusterNode *node) {
  * Otherwise 0 is returned. */
 int clusterNodeDelFailureReport(clusterNode *node, clusterNode *sender) {
     list *l = node->fail_reports;
-    listNode *ln;
-    listIter li;
+    ListNode *ln;
+    ListIter li;
     clusterNodeFailReport *fr;
 
     /* Search for a failure report from this sender. */

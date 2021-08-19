@@ -1851,7 +1851,7 @@ int ziplistTest(int argc, char **argv) {
         char buf[1024];
         int buflen;
         list *ref;
-        listNode *refnode;
+        ListNode *refnode;
 
         /* Hold temp vars from ziplist */
         unsigned char *sstr;

@@ -1525,7 +1525,7 @@ void ldbInit(void) {
 
 /* Remove all the pending messages in the specified list. */
 void ldbFlushLog(list *log) {
-    listNode *ln;
+    ListNode *ln;
 
     while((ln = listFirst(log)) != NULL)
         listDelNode(log,ln);
@@ -1583,7 +1583,7 @@ void ldbSendLogs(void) {
     sds proto = sdsempty();
     proto = sdscatfmt(proto,"*%i\r\n", (int)listLength(ldb.logs));
     while(listLength(ldb.logs)) {
-        listNode *ln = listFirst(ldb.logs);
+        ListNode *ln = listFirst(ldb.logs);
         proto = sdscatlen(proto,"+",1);
         sdsmapchars(ln->value,"\r\n","  ",2);
         proto = sdscatsds(proto,ln->value);
@@ -1697,7 +1697,7 @@ void ldbEndSession(client *c) {
  * forked debugging sessions, it is removed from the children list.
  * If the pid was found non-zero is returned. */
 int ldbRemoveChild(pid_t pid) {
-    listNode *ln = listSearchKey(ldb.children,(void*)(unsigned long)pid);
+    ListNode *ln = listSearchKey(ldb.children,(void*)(unsigned long)pid);
     if (ln) {
         listDelNode(ldb.children,ln);
         return 1;
@@ -1713,8 +1713,8 @@ int ldbPendingChildren(void) {
 
 /* Kill all the forked sessions. */
 void ldbKillForkedSessions(void) {
-    listIter li;
-    listNode *ln;
+    ListIter li;
+    ListNode *ln;
 
     listRewind(ldb.children,&li);
     while((ln = listNext(&li))) {

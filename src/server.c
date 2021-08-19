@@ -852,7 +852,7 @@ void clientsCron(void) {
 
     while(listLength(server.clients) && iterations--) {
         client *c;
-        listNode *head;
+        ListNode *head;
 
         /* Rotate the list, take the current head, process.
          * This way if the client must be removed from the list it's the
@@ -3225,8 +3225,8 @@ sds genRedisInfoString(char *section) {
 
         if (listLength(server.slaves)) {
             int slaveid = 0;
-            listNode *ln;
-            listIter li;
+            ListNode *ln;
+            ListIter li;
 
             listRewind(server.slaves,&li);
             while((ln = listNext(&li))) {

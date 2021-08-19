@@ -88,7 +88,7 @@ int pubsubSubscribeChannel(client *c, robj *channel) {
 int pubsubUnsubscribeChannel(client *c, robj *channel, int notify) {
     dictEntry *de;
     list *clients;
-    listNode *ln;
+    ListNode *ln;
     int retval = 0;
 
     /* Remove the channel from the client -> channels hash table */
@@ -148,7 +148,7 @@ int pubsubSubscribePattern(client *c, robj *pattern) {
 /* Unsubscribe a client from a channel. Returns 1 if the operation succeeded, or
  * 0 if the client was not subscribed to the specified channel. */
 int pubsubUnsubscribePattern(client *c, robj *pattern, int notify) {
-    listNode *ln;
+    ListNode *ln;
     pubsubPattern pat;
     int retval = 0;
 
@@ -200,8 +200,8 @@ int pubsubUnsubscribeAllChannels(client *c, int notify) {
 /* Unsubscribe from all the patterns. Return the number of patterns the
  * client was subscribed from. */
 int pubsubUnsubscribeAllPatterns(client *c, int notify) {
-    listNode *ln;
-    listIter li;
+    ListNode *ln;
+    ListIter li;
     int count = 0;
 
     listRewind(c->pubsub_patterns,&li);
@@ -225,15 +225,15 @@ int pubsubUnsubscribeAllPatterns(client *c, int notify) {
 int pubsubPublishMessage(robj *channel, robj *message) {
     int receivers = 0;
     dictEntry *de;
-    listNode *ln;
-    listIter li;
+    ListNode *ln;
+    ListIter li;
 
     /* Send to clients listening for that channel */
     de = dictFind(server.pubsub_channels,channel);
     if (de) {
         list *list = dictGetVal(de);
-        listNode *ln;
-        listIter li;
+        ListNode *ln;
+        ListIter li;
 
         listRewind(list,&li);
         while ((ln = listNext(&li)) != NULL) {

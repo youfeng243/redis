@@ -1603,7 +1603,7 @@ void rewriteConfigRewriteLine(struct rewriteConfigState *state, const char *opti
     }
 
     if (l) {
-        listNode *ln = listFirst(l);
+        ListNode *ln = listFirst(l);
         int linenum = (long) ln->value;
 
         /* There are still lines in the old configuration file we can reuse
@@ -1884,7 +1884,7 @@ void rewriteConfigRemoveOrphaned(struct rewriteConfigState *state) {
         }
 
         while(listLength(l)) {
-            listNode *ln = listFirst(l);
+            ListNode *ln = listFirst(l);
             int linenum = (long) ln->value;
 
             sdsfree(state->lines[linenum]);

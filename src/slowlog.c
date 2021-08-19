@@ -147,9 +147,9 @@ void slowlogCommand(client *c) {
     } else if ((c->argc == 2 || c->argc == 3) &&
                !strcasecmp(c->argv[1]->ptr, "get")) {
         long count = 10, sent = 0;
-        listIter li;
+        ListIter li;
         void *totentries;
-        listNode *ln;
+        ListNode *ln;
         SlowlogEntry *se;
 
         if (c->argc == 3 &&

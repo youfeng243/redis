@@ -833,8 +833,8 @@ struct redisMemOverhead *getMemoryOverheadData(void) {
 
     mem = 0;
     if (listLength(server.slaves)) {
-        listIter li;
-        listNode *ln;
+        ListIter li;
+        ListNode *ln;
 
         listRewind(server.slaves,&li);
         while((ln = listNext(&li))) {
@@ -849,8 +849,8 @@ struct redisMemOverhead *getMemoryOverheadData(void) {
 
     mem = 0;
     if (listLength(server.clients)) {
-        listIter li;
-        listNode *ln;
+        ListIter li;
+        ListNode *ln;
 
         listRewind(server.clients,&li);
         while((ln = listNext(&li))) {

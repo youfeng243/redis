@@ -171,8 +171,8 @@ void feedReplicationBacklogWithObject(robj *o) {
  * stream. Instead if the instance is a slave and has sub-slaves attached,
  * we use replicationFeedSlavesFromMaster() */
 void replicationFeedSlaves(list *slaves, int dictid, robj **argv, int argc) {
-    listNode *ln;
-    listIter li;
+    ListNode *ln;
+    ListIter li;
     int j, len;
     char llstr[LONG_STR_SIZE];
 
@@ -276,8 +276,8 @@ void replicationFeedSlaves(list *slaves, int dictid, robj **argv, int argc) {
  * to our sub-slaves. */
 #include <ctype.h>
 void replicationFeedSlavesFromMasterStream(list *slaves, char *buf, size_t buflen) {
-    listNode *ln;
-    listIter li;
+    ListNode *ln;
+    ListIter li;
 
     /* Debugging: this is handy to see the stream sent from master
      * to slaves. Disabled with if(0). */
@@ -301,8 +301,8 @@ void replicationFeedSlavesFromMasterStream(list *slaves, char *buf, size_t bufle
 }
 
 void replicationFeedMonitors(client *c, list *monitors, int dictid, robj **argv, int argc) {
-    listNode *ln;
-    listIter li;
+    ListNode *ln;
+    ListIter li;
     int j;
     sds cmdrepr = sdsnew("+");
     robj *cmdobj;
@@ -563,8 +563,8 @@ need_full_resync:
 int startBgsaveForReplication(int mincapa) {
     int retval;
     int socket_target = server.repl_diskless_sync && (mincapa & SLAVE_CAPA_EOF);
-    listIter li;
-    listNode *ln;
+    ListIter li;
+    ListNode *ln;
 
     serverLog(LL_NOTICE,"Starting BGSAVE for SYNC with target: %s",
         socket_target ? "slaves sockets" : "disk");
@@ -706,8 +706,8 @@ void syncCommand(client *c) {
          * one for replication, i.e. if there is another slave that is
          * registering differences since the server forked to save. */
         client *slave;
-        listNode *ln;
-        listIter li;
+        ListNode *ln;
+        ListIter li;
 
         listRewind(server.slaves,&li);
         while((ln = listNext(&li))) {
@@ -938,10 +938,10 @@ void sendBulkToSlave(aeEventLoop *el, int fd, void *privdata, int mask) {
  * The 'type' argument is the type of the child that terminated
  * (if it had a disk or socket target). */
 void updateSlavesWaitingBgsave(int bgsaveerr, int type) {
-    listNode *ln;
+    ListNode *ln;
     int startbgsave = 0;
     int mincapa = -1;
-    listIter li;
+    ListIter li;
 
     listRewind(server.slaves,&li);
     while((ln = listNext(&li))) {
@@ -2049,8 +2049,8 @@ void slaveofCommand(client *c) {
  * in an easy to process format. */
 void roleCommand(client *c) {
     if (server.masterhost == NULL) {
-        listIter li;
-        listNode *ln;
+        ListIter li;
+        ListNode *ln;
         void *mbcount;
         int slaves = 0;
 
@@ -2250,8 +2250,8 @@ void replicationResurrectCachedMaster(int newfd) {
  * If the option is active, the server will prevent writes if there are not
  * enough connected slaves with the specified lag (or less). */
 void refreshGoodSlavesCount(void) {
-    listIter li;
-    listNode *ln;
+    ListIter li;
+    ListNode *ln;
     int good = 0;
 
     if (!server.repl_min_slaves_to_write ||
@@ -2332,7 +2332,7 @@ void replicationScriptCacheAdd(sds sha1) {
     /* Evict oldest. */
     if (listLength(server.repl_scriptcache_fifo) == server.repl_scriptcache_size)
     {
-        listNode *ln = listLast(server.repl_scriptcache_fifo);
+        ListNode *ln = listLast(server.repl_scriptcache_fifo);
         sds oldest = listNodeValue(ln);
 
         retval = dictDelete(server.repl_scriptcache_dict,oldest);
@@ -2389,8 +2389,8 @@ void replicationRequestAckFromSlaves(void) {
 /* Return the number of slaves that already acknowledged the specified
  * replication offset. */
 int replicationCountAcksByOffset(long long offset) {
-    listIter li;
-    listNode *ln;
+    ListIter li;
+    ListNode *ln;
     int count = 0;
 
     listRewind(server.slaves,&li);
@@ -2446,7 +2446,7 @@ void waitCommand(client *c) {
  * waiting for replica acks. Never call it directly, call unblockClient()
  * instead. */
 void unblockClientWaitingReplicas(client *c) {
-    listNode *ln = listSearchKey(server.clients_waiting_acks,c);
+    ListNode *ln = listSearchKey(server.clients_waiting_acks,c);
     serverAssert(ln != NULL);
     listDelNode(server.clients_waiting_acks,ln);
 }
@@ -2457,8 +2457,8 @@ void processClientsWaitingReplicas(void) {
     long long last_offset = 0;
     int last_numreplicas = 0;
 
-    listIter li;
-    listNode *ln;
+    ListIter li;
+    ListNode *ln;
 
     listRewind(server.clients_waiting_acks,&li);
     while((ln = listNext(&li))) {
@@ -2558,8 +2558,8 @@ void replicationCron(void) {
      * So slaves can implement an explicit timeout to masters, and will
      * be able to detect a link disconnection even if the TCP connection
      * will not actually go down. */
-    listIter li;
-    listNode *ln;
+    ListIter li;
+    ListNode *ln;
     robj *ping_argv[1];
 
     /* First, send PING according to ping_slave_period. */
@@ -2604,8 +2604,8 @@ void replicationCron(void) {
 
     /* Disconnect timedout slaves. */
     if (listLength(server.slaves)) {
-        listIter li;
-        listNode *ln;
+        ListIter li;
+        ListNode *ln;
 
         listRewind(server.slaves,&li);
         while((ln = listNext(&li))) {
@@ -2679,8 +2679,8 @@ void replicationCron(void) {
         time_t idle, max_idle = 0;
         int slaves_waiting = 0;
         int mincapa = -1;
-        listNode *ln;
-        listIter li;
+        ListNode *ln;
+        ListIter li;
 
         listRewind(server.slaves,&li);
         while((ln = listNext(&li))) {

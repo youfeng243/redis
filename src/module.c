@@ -2770,8 +2770,8 @@ moduleType *moduleTypeLookupModuleByName(const char *name) {
 
     while ((de = dictNext(di)) != NULL) {
         struct RedisModule *module = dictGetVal(de);
-        listIter li;
-        listNode *ln;
+        ListIter li;
+        ListNode *ln;
 
         listRewind(module->types,&li);
         while((ln = listNext(&li))) {
@@ -2809,8 +2809,8 @@ moduleType *moduleTypeLookupModuleByID(uint64_t id) {
 
     while ((de = dictNext(di)) != NULL && mt == NULL) {
         struct RedisModule *module = dictGetVal(de);
-        listIter li;
-        listNode *ln;
+        ListIter li;
+        ListNode *ln;
 
         listRewind(module->types,&li);
         while((ln = listNext(&li))) {
@@ -3521,7 +3521,7 @@ int RM_AbortBlock(RedisModuleBlockedClient *bc) {
  * When this happens the RedisModuleBlockedClient structure in the queue
  * will have the 'client' field set to NULL. */
 void moduleHandleBlockedClients(void) {
-    listNode *ln;
+    ListNode *ln;
     RedisModuleBlockedClient *bc;
 
     pthread_mutex_lock(&moduleUnblockedClientsMutex);
@@ -3766,8 +3766,8 @@ void moduleNotifyKeyspaceEvent(int type, const char *event, robj *key, int dbid)
     /* Don't do anything if there aren't any subscribers */
     if (listLength(moduleKeyspaceSubscribers) == 0) return;
 
-    listIter li;
-    listNode *ln;
+    ListIter li;
+    ListNode *ln;
     listRewind(moduleKeyspaceSubscribers,&li);
 
     /* Remove irrelevant flags from the type mask */
@@ -3796,8 +3796,8 @@ void moduleNotifyKeyspaceEvent(int type, const char *event, robj *key, int dbid)
 
 /* Unsubscribe any notification subscirbers this module has upon unloading */
 void moduleUnsubscribeNotifications(RedisModule *module) {
-    listIter li;
-    listNode *ln;
+    ListIter li;
+    ListNode *ln;
     listRewind(moduleKeyspaceSubscribers,&li);
     while((ln = listNext(&li))) {
         RedisModuleKeyspaceSubscriber *sub = ln->value;
@@ -3880,8 +3880,8 @@ void moduleInitModulesSystem(void) {
  * given commands, loading AOF also may need some modules to exist, and
  * if this instance is a slave, it must understand commands from master. */
 void moduleLoadFromQueue(void) {
-    listIter li;
-    listNode *ln;
+    ListIter li;
+    ListNode *ln;
 
     listRewind(server.loadmodule_queue,&li);
     while((ln = listNext(&li))) {

@@ -509,8 +509,8 @@ void sortCommand(client *c) {
         /* STORE option not specified, sent the sorting result to client */
         addReplyMultiBulkLen(c,outputlen);
         for (j = start; j <= end; j++) {
-            listNode *ln;
-            listIter li;
+            ListNode *ln;
+            ListIter li;
 
             if (!getop) addReplyBulk(c,vector[j].obj);
             listRewind(operations,&li);
@@ -537,8 +537,8 @@ void sortCommand(client *c) {
 
         /* STORE option specified, set the sorting result as a List object */
         for (j = start; j <= end; j++) {
-            listNode *ln;
-            listIter li;
+            ListNode *ln;
+            ListIter li;
 
             if (!getop) {
                 listTypePush(sobj,vector[j].obj,LIST_TAIL);

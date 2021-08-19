@@ -107,7 +107,7 @@ void blockClient(client *c, int btype) {
  * in order to process the pending input buffer of clients that were
  * unblocked after a blocking operation. */
 void processUnblockedClients(void) {
-    listNode *ln;
+    ListNode *ln;
     client *c;
 
     while (listLength(server.unblocked_clients)) {
@@ -177,8 +177,8 @@ void replyToBlockedClientTimedOut(client *c) {
  * The semantics is to send an -UNBLOCKED error to the client, disconnecting
  * it at the same time. */
 void disconnectAllBlockedClients(void) {
-    listNode *ln;
-    listIter li;
+    ListNode *ln;
+    ListIter li;
 
     listRewind(server.clients,&li);
     while((ln = listNext(&li))) {

@@ -123,7 +123,7 @@ static long long mstime(void) {
 }
 
 static void freeClient(client c) {
-    listNode *ln;
+    ListNode *ln;
     aeDeleteFileEvent(config.el,c->context->fd,AE_WRITABLE);
     aeDeleteFileEvent(config.el,c->context->fd,AE_READABLE);
     redisFree(c->context);
@@ -137,7 +137,7 @@ static void freeClient(client c) {
 }
 
 static void freeAllClients(void) {
-    listNode *ln = config.clients->head, *next;
+    ListNode *ln = config.clients->head, *next;
 
     while(ln) {
         next = ln->next;
