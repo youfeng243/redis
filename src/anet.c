@@ -169,15 +169,15 @@ int anetSetSendBuffer(char *err, int fd, int buffsize)
     return ANET_OK;
 }
 
-int anetTcpKeepAlive(char *err, int fd)
-{
-    int yes = 1;
-    if (setsockopt(fd, SOL_SOCKET, SO_KEEPALIVE, &yes, sizeof(yes)) == -1) {
-        anetSetError(err, "setsockopt SO_KEEPALIVE: %s", strerror(errno));
-        return ANET_ERR;
-    }
-    return ANET_OK;
-}
+//int anetTcpKeepAlive(char *err, int fd)
+//{
+//    int yes = 1;
+//    if (setsockopt(fd, SOL_SOCKET, SO_KEEPALIVE, &yes, sizeof(yes)) == -1) {
+//        anetSetError(err, "setsockopt SO_KEEPALIVE: %s", strerror(errno));
+//        return ANET_ERR;
+//    }
+//    return ANET_OK;
+//}
 
 /* Set the socket send timeout (SO_SNDTIMEO socket option) to the specified
  * number of milliseconds, or disable it if the 'ms' argument is zero. */
@@ -345,10 +345,10 @@ end:
     }
 }
 
-int anetTcpConnect(char *err, char *addr, int port)
-{
-    return anetTcpGenericConnect(err,addr,port,NULL,ANET_CONNECT_NONE);
-}
+//int anetTcpConnect(char *err, char *addr, int port)
+//{
+//    return anetTcpGenericConnect(err,addr,port,NULL,ANET_CONNECT_NONE);
+//}
 
 int anetTcpNonBlockConnect(char *err, char *addr, int port)
 {
@@ -649,10 +649,10 @@ int anetSockName(int fd, char *ip, size_t ip_len, int *port) {
     return 0;
 }
 
-int anetFormatSock(int fd, char *fmt, size_t fmt_len) {
-    char ip[INET6_ADDRSTRLEN];
-    int port;
-
-    anetSockName(fd,ip,sizeof(ip),&port);
-    return anetFormatAddr(fmt, fmt_len, ip, port);
-}
+//int anetFormatSock(int fd, char *fmt, size_t fmt_len) {
+//    char ip[INET6_ADDRSTRLEN];
+//    int port;
+//
+//    anetSockName(fd,ip,sizeof(ip),&port);
+//    return anetFormatAddr(fmt, fmt_len, ip, port);
+//}
