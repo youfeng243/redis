@@ -29,6 +29,7 @@
 
 #include "server.h"
 #include "cluster.h"
+#include "aof.h"
 #include <dlfcn.h>
 
 #define REDISMODULE_CORE 1

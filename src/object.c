@@ -31,6 +31,7 @@
 #include "server.h"
 #include <math.h>
 #include <ctype.h>
+#include "aof.h"
 
 #ifdef __CYGWIN__
 #define strtold(a,b) ((long double)strtod((a),(b)))

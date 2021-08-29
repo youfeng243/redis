@@ -1523,18 +1523,7 @@ void stopLoading(void);
 #include "rdb.h"
 int rdbSaveRio(rio *rdb, int *error, int flags, rdbSaveInfo *rsi);
 
-/* AOF persistence */
-void flushAppendOnlyFile(int force);
-void feedAppendOnlyFile(struct redisCommand *cmd, int dictid, robj **argv, int argc);
-int rewriteAppendOnlyFileBackground(void);
-int loadAppendOnlyFile(char *filename);
-void stopAppendOnly(void);
-int startAppendOnly(void);
-void backgroundRewriteDoneHandler(int exitcode, int bysignal);
-void aofRewriteBufferReset(void);
-unsigned long aofRewriteBufferSize(void);
-ssize_t aofReadDiffFromParent(void);
-int rioWriteBulkObject(rio *r, struct redisObject *obj);
+
 
 /* Child info */
 void openChildInfoPipe(void);

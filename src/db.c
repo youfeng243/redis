@@ -30,6 +30,7 @@
 #include "server.h"
 #include "cluster.h"
 #include "atomicvar.h"
+#include "aof.h"
 
 #include <signal.h>
 #include <ctype.h>

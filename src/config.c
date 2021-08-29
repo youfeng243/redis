@@ -30,6 +30,7 @@
 
 #include "server.h"
 #include "cluster.h"
+#include "aof.h"
 
 #include <fcntl.h>
 #include <sys/stat.h>

@@ -27,7 +27,7 @@
  * POSSIBILITY OF SUCH DAMAGE.
  */
 
-#include "server.h"
+#include "aof.h"
 #include "bio.h"
 #include "rio.h"
 
