@@ -582,7 +582,7 @@ heqin in commit d8da89ea:
  1 file changed, 6 insertions(+), 4 deletions(-)
 
 antirez in commit 4fcc564a:
- safe_write -> aofWrite. Function commented.
+ safe_write -> __aofWrite. Function commented.
  1 file changed, 9 insertions(+), 2 deletions(-)
 
 zhaozhao.zz in commit 27d9c729:
