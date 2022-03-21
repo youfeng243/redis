@@ -34,6 +34,7 @@
 #include <sys/time.h>
 #include "ae.h"
 #include "zmalloc.h"
+#include <unistd.h> // for close
 
 typedef struct aeApiState {
     int kqfd;
@@ -44,7 +45,7 @@ static int aeApiCreate(aeEventLoop *eventLoop) {
     aeApiState *state = zmalloc(sizeof(aeApiState));
 
     if (!state) return -1;
-    state->events = zmalloc(sizeof(struct kevent)*eventLoop->setsize);
+    state->events = zmalloc(sizeof(struct kevent) * eventLoop->setsize);
     if (!state->events) {
         zfree(state);
         return -1;
@@ -62,7 +63,7 @@ static int aeApiCreate(aeEventLoop *eventLoop) {
 static int aeApiResize(aeEventLoop *eventLoop, int setsize) {
     aeApiState *state = eventLoop->apidata;
 
-    state->events = zrealloc(state->events, sizeof(struct kevent)*setsize);
+    state->events = zrealloc(state->events, sizeof(struct kevent) * setsize);
     return 0;
 }
 
@@ -122,9 +123,9 @@ static int aeApiPoll(aeEventLoop *eventLoop, struct timeval *tvp) {
         int j;
 
         numevents = retval;
-        for(j = 0; j < numevents; j++) {
+        for (j = 0; j < numevents; j++) {
             int mask = 0;
-            struct kevent *e = state->events+j;
+            struct kevent *e = state->events + j;
 
             if (e->filter == EVFILT_READ) mask |= AE_READABLE;
             if (e->filter == EVFILT_WRITE) mask |= AE_WRITABLE;
